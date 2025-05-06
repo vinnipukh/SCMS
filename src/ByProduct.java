@@ -7,7 +7,7 @@ public class ByProduct extends InventoryItem{
     }
 
     public double getDisposalCost() {
-        return disposalCost;
+        return this.disposalCost;
     }
 
     public void setDisposalCost(double disposalCost) {

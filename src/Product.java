@@ -1,23 +1,23 @@
 public class Product extends InventoryItem{
-    private double ProductionCost;
+    private double productionCost;
 
     public Product(String name, double productionCost) {
         super(name);
-        ProductionCost = productionCost;
+        this.productionCost = productionCost;
     }
 
     public double getProductionCost() {
-        return ProductionCost;
+        return this.productionCost;
     }
 
     public void setProductionCost(double productionCost) {
-        ProductionCost = productionCost;
+        this.productionCost = productionCost;
     }
 
     @Override
     public String toString() {
         return super.toString()+ " Product{" +
-                "ProductionCost=" + ProductionCost +
+                "productionCost=" + productionCost +
                 '}';
     }
 }
