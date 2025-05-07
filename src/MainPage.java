@@ -4,48 +4,55 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+/**
+ * MainPage class implements the Main Page which is shown in the first photo in the project description.
+ * 
+ *
+ */
 public class MainPage extends MyWindow{
+    
     public MainPage(){
         super("Supply Chain Management System");
 
-        JPanel mainpanel = new JPanel();
+        
         setLayout(new BorderLayout(10,10));
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        topPanel.setBorder(new EmptyBorder(5,10,10,5));
+        
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        JLabel titleLabel = new JLabel("Supply Chain Management System", SwingConstants.LEFT);        
+        topPanel.add(titleLabel, BorderLayout.WEST);
+        topPanel.setBackground(Color.LIGHT_GRAY);
+        // i made the title and the exit button part gray cause it was like that in the provided image
         JButton exitButton = new JButton("Exit");
-
+        exitButton.setPreferredSize(new Dimension(70, 28));
         exitButton.addActionListener(e -> {
             System.exit(0);
             // i wrote zero here cause thats the  exit status code
         });
+        topPanel.add(exitButton, BorderLayout.EAST);
+        add(topPanel, BorderLayout.NORTH);
 
-        mainpanel.setLayout(new GridLayout(4,1,10,10));
+        
+        JPanel mainPanel = new JPanel();
+        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        mainPanel.setLayout(new GridLayout(4,1,20,20));       
+
+        
         JButton rmcsButton = new JButton("Raw Material Producers");
         JButton factoriesButton = new JButton("Factories");
         JButton marketsButton = new JButton("Markets");
         JButton customersButton = new JButton("Customers");
-        Dimension buttonSizeButton = new Dimension(250, 60);
 
-        rmcsButton.setPreferredSize(buttonSizeButton);
-        factoriesButton.setPreferredSize(buttonSizeButton);
-        marketsButton.setPreferredSize(buttonSizeButton);
-        customersButton.setPreferredSize(buttonSizeButton);
+        mainPanel.add(rmcsButton);
+        mainPanel.add(factoriesButton);
+        mainPanel.add(marketsButton);
+        mainPanel.add(customersButton);
 
-
-        mainpanel.add(rmcsButton);
-        mainpanel.add(factoriesButton);
-        mainpanel.add(marketsButton);
-        mainpanel.add(customersButton);
-        add(mainpanel, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
         pack();
         setLocationRelativeTo(null);
         validate();
-
-
-
-
-
-
-
     }
+
+   
 }

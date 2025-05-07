@@ -5,7 +5,7 @@ public abstract class InventoryItem  {
     private final String name;
     private final int itemID;
     private static int nextID = 0;
-    public InventoryItem(String name){
+    public InventoryItem(String name, double price, int quantity){
         this.name = name;
         this.itemID = nextID++;
 
