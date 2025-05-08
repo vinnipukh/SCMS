@@ -44,6 +44,12 @@ public class MainPage extends MyWindow{
         rmcsButton.addActionListener(e -> {
             new RawMaterialProducerGUI();
         });
+        factoriesButton.addActionListener(e -> {
+            new FactoryGUI();
+        });
+        marketsButton.addActionListener(e -> {
+            new MarketGUI();
+        });
 
         mainPanel.add(rmcsButton);
         mainPanel.add(factoriesButton);

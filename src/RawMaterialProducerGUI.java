@@ -9,6 +9,30 @@ public class RawMaterialProducerGUI extends MyWindow {
     JList<String> producerList;
     java.util.List<RawMaterialProducer> producers;
 
+    private static java.util.List<RawMaterialProducer> allProducers = new java.util.ArrayList<>();
+    private static boolean initialized = false;
+
+    public static java.util.List<RawMaterialProducer> getAllProducers() {
+        if (!initialized) {
+            allProducers.clear();
+            for (int i = 0; i < 6; i++) {
+                allProducers.add(new RawMaterialProducer(
+                    "Copper_" + i,
+                    5000.0,
+                    1200.0,
+                    new RawMaterial("Copper"),
+                    10.0
+                ));
+                allProducers.get(i).setBalance(5000.0);
+                allProducers.get(i).setStorageCapacity(1200.0);
+                allProducers.get(i).setSellingPrice(10.0);
+                allProducers.get(i).setProducerName("Copper_" + i);
+            }
+            initialized = true;
+        }
+        return allProducers;
+    }
+
     public RawMaterialProducerGUI() {
         super("Raw Material Producers");
         setLayout(new BorderLayout());
@@ -40,21 +64,8 @@ public class RawMaterialProducerGUI extends MyWindow {
         bottomPanel.add(editButton);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Dummy data for demonstration
-        producers = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
-            producers.add(new RawMaterialProducer(
-                "Copper_" + i,
-                5000.0,
-                1200.0,
-                new RawMaterial("Copper"),
-                10.0
-            ));
-            producers.get(i).setBalance(5000.0);
-            producers.get(i).setStorageCapacity(1200.0);
-            producers.get(i).setSellingPrice(10.0);
-            producers.get(i).setProducerName("Copper_" + i);
-        }
+        // Remove dummy data initialization from here
+        producers = getAllProducers();
         refreshProducerList();
 
         // Double-click to open detail page
