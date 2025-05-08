@@ -1,10 +1,6 @@
-import java.util.Map;
+import java.util.HashMap;
 
-/**
- * Defines the contract for a customer in the supply chain management system.
- * Customers can view their balance, manage an inventory of purchased products,
- * and attempt to buy products from markets.
- */
+
 public interface Customer {
 
     /**
@@ -32,7 +28,7 @@ public interface Customer {
      *
      * @return A map representing the customer's inventory.
      */
-    Map<InventoryItem, Double> getInventory(); // Or use Map<Product, Double> if customers only buy Products
+    HashMap<InventoryItem, Double> getInventory(); // Or use Map<Product, Double> if customers only buy Products
 
 
 
