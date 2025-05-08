@@ -2,13 +2,13 @@ import java.util.HashMap;
 
 public class ProductDesign {
 
-    private int productAmount;
     private int byproductAmount;
     private int rawmaterialAmount;
 
     private Product product;
     private ByProduct byproduct;
     private RawMaterial rawmaterial;
+    private RawMaterial rawmaterial2;
     
     private HashMap<InventoryItem,Integer> inputRequirements;
     private HashMap<InventoryItem,Integer> outputProducts;
@@ -22,13 +22,14 @@ public class ProductDesign {
         this.inputRequirements = new HashMap<>();        
         this.outputProducts = new HashMap<>();
     }
-    public int getProductAmount() {
-        return this.productAmount;
+    public ProductDesign(Product product1,ByProduct byproduct,RawMaterial rawmaterial,RawMaterial rawmaterial2){
+        this(product1,byproduct,rawmaterial);
+        this.rawmaterial2 = rawmaterial2;
+
+
+
     }
 
-    public void setProductAmount(int productAmount) {
-        this.productAmount = productAmount;
-    }
 
     public int getByproductAmount() {
         return this.byproductAmount;
