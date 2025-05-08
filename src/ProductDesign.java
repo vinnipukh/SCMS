@@ -2,16 +2,16 @@ import java.util.HashMap;
 
 public class ProductDesign {
 
-    private int byproductAmount;
-    private int rawmaterialAmount;
+    private double byproductAmount;
+    private double rawmaterialAmount;
 
     private Product product;
     private ByProduct byproduct;
     private RawMaterial rawmaterial;
     private RawMaterial rawmaterial2;
     
-    private HashMap<InventoryItem,Integer> inputRequirements;
-    private HashMap<InventoryItem,Integer> outputProducts;
+    private HashMap<InventoryItem,Double> inputRequirements;
+    private HashMap<InventoryItem,Double> outputProducts;
 
     private double productionCost;
 
@@ -31,19 +31,19 @@ public class ProductDesign {
     }
 
 
-    public int getByproductAmount() {
+    public double getByproductAmount() {
         return this.byproductAmount;
     }
 
-    public void setByproductAmount(int byproductAmount) {
+    public void setByproductAmount(double byproductAmount) {
         this.byproductAmount = byproductAmount;
     }
 
-    public int getRawmaterialAmount() {
+    public double getRawmaterialAmount() {
         return this.rawmaterialAmount;
     }
 
-    public void setRawmaterialAmount(int rawmaterialAmount) {
+    public void setRawmaterialAmount(double rawmaterialAmount) {
         this.rawmaterialAmount = rawmaterialAmount;
     }
 
@@ -71,11 +71,11 @@ public class ProductDesign {
         this.rawmaterial = rawmaterial;
     }
 
-    public HashMap<InventoryItem,Integer> getinputRequirements() {
+    public HashMap<InventoryItem,Double> getinputRequirements() {
         return inputRequirements;
     }
 
-    public void setinputRequirements(HashMap<InventoryItem,Integer> inputRequirements) {
+    public void setinputRequirements(HashMap<InventoryItem,Double> inputRequirements) {
         this.inputRequirements = inputRequirements;
     }
     public double getProductionCost() {
@@ -87,10 +87,10 @@ public class ProductDesign {
     }
 
     
-    public boolean canProduce(HashMap<InventoryItem, Integer> availableInventory, int amountToProduce) {
+    public boolean canProduce(HashMap<InventoryItem, Double> availableInventory, double amountToProduce) {
         for (InventoryItem item : inputRequirements.keySet()) {
-            int required = inputRequirements.get(item) * amountToProduce;
-            int available = availableInventory.getOrDefault(item, 0);
+            double required = inputRequirements.get(item) * amountToProduce;
+            double available = availableInventory.getOrDefault(item, 0.0);
             if (available < required) {
                 return false;
             }
@@ -98,41 +98,41 @@ public class ProductDesign {
         return true;
     }
 
-    public HashMap<InventoryItem, Integer> getConsumedInputs(int amountToProduce) {
-        HashMap<InventoryItem, Integer> consumed = new HashMap<>();
+    public HashMap<InventoryItem, Double> getConsumedInputs(double amountToProduce) {
+        HashMap<InventoryItem, Double> consumed = new HashMap<>();
         for (InventoryItem item : inputRequirements.keySet()) {
             consumed.put(item, inputRequirements.get(item) * amountToProduce);
         }
         return consumed;
     }
 
-    public HashMap<InventoryItem, Integer> getProducedOutputs(int amountToProduce) {
-        HashMap<InventoryItem, Integer> produced = new HashMap<>();
+    public HashMap<InventoryItem, Double> getProducedOutputs(double amountToProduce) {
+        HashMap<InventoryItem, Double> produced = new HashMap<>();
         for (InventoryItem item : outputProducts.keySet()) {
             produced.put(item, outputProducts.get(item) * amountToProduce);
         }
         return produced;
     }
 
-    public void addInputRequirement(InventoryItem item, int amount) {
+    public void addInputRequirement(InventoryItem item, double amount) {
         inputRequirements.put(item, amount);
     }
 
-    public void addOutputProduct(InventoryItem item, int amount) {
+    public void addOutputProduct(InventoryItem item, double amount) {
         outputProducts.put(item, amount);
     }
 
-    public void consumeInputsFromInventory(HashMap<InventoryItem, Integer> inventory, int amountToProduce) {
+    public void consumeInputsFromInventory(HashMap<InventoryItem, Double> inventory, double amountToProduce) {
         for (InventoryItem item : inputRequirements.keySet()) {
-            int required = inputRequirements.get(item) * amountToProduce;
-            inventory.put(item, inventory.getOrDefault(item, 0) - required);
+            double required = inputRequirements.get(item) * amountToProduce;
+            inventory.put(item, inventory.getOrDefault(item, 0.0) - required);
         }
     }
 
-    public void addOutputsToInventory(HashMap<InventoryItem, Integer> inventory, int amountToProduce) {
+    public void addOutputsToInventory(HashMap<InventoryItem, Double> inventory, double amountToProduce) {
         for (InventoryItem item : outputProducts.keySet()) {
-            int produced = outputProducts.get(item) * amountToProduce;
-            inventory.put(item, inventory.getOrDefault(item, 0) + produced);
+            double produced = outputProducts.get(item) * amountToProduce;
+            inventory.put(item, inventory.getOrDefault(item, 0.0) + produced);
         }
     }
 

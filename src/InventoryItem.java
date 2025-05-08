@@ -3,11 +3,11 @@ import java.util.Objects;
 public abstract class InventoryItem  {
 
     private final String name;
-    private final int itemID;
+    private final String itemID;
     private static int nextID = 0;
-    public InventoryItem(String name, double price, int quantity){
+    public InventoryItem(String name){
         this.name = name;
-        this.itemID = nextID++;
+        this.itemID = "ITEM_"+nextID++;
 
 
     }
@@ -21,7 +21,7 @@ public abstract class InventoryItem  {
         return this.name;
     }
 
-    public int getItemID() {
+    public String getItemID() {
         return this.itemID;
     }
 
