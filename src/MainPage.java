@@ -21,8 +21,6 @@ public class MainPage extends MyWindow{
         topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         JLabel titleLabel = new JLabel("Supply Chain Management System", SwingConstants.LEFT);        
         topPanel.add(titleLabel, BorderLayout.WEST);
-        topPanel.setBackground(Color.LIGHT_GRAY);
-        // i made the title and the exit button part gray cause it was like that in the provided image
         JButton exitButton = new JButton("Exit");
         exitButton.setPreferredSize(new Dimension(70, 28));
         exitButton.addActionListener(e -> {
@@ -42,6 +40,10 @@ public class MainPage extends MyWindow{
         JButton factoriesButton = new JButton("Factories");
         JButton marketsButton = new JButton("Markets");
         JButton customersButton = new JButton("Customers");
+
+        rmcsButton.addActionListener(e -> {
+            new RawMaterialProducerGUI();
+        });
 
         mainPanel.add(rmcsButton);
         mainPanel.add(factoriesButton);
