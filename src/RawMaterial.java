@@ -4,6 +4,9 @@ public class RawMaterial extends InventoryItem{
 
     public RawMaterial(String name){
         super(name);
+        if (productionCost < 0) {
+            throw new IllegalArgumentException("Production cost cannot be negative.");
+        }
         this.productionCost = productionCost;
 
     }
@@ -13,6 +16,9 @@ public class RawMaterial extends InventoryItem{
     }
 
     public void setProductionCost(double productionCost) {
+        if (productionCost < 0) {
+            throw new IllegalArgumentException("Production cost cannot be negative.");
+        }
         this.productionCost = productionCost;
     }
 
