@@ -55,7 +55,6 @@ public class RawMaterialProducerGUI extends MyWindow {
         scrollPane.setPreferredSize(new Dimension(350, 200));
         add(scrollPane, BorderLayout.CENTER);
 
-        // Bottom panel with Add/Edit buttons
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton addButton = new JButton("Add New Producer");
@@ -64,7 +63,6 @@ public class RawMaterialProducerGUI extends MyWindow {
         bottomPanel.add(editButton);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Remove dummy data initialization from here
         producers = getAllProducers();
         refreshProducerList();
 

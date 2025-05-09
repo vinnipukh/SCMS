@@ -81,6 +81,7 @@ public class MarketGUI extends MyWindow {
 
         pack();
         setLocationRelativeTo(null);
+        setVisible(true);
 
     }
 
