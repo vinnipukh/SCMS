@@ -3,7 +3,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 
-public class Factory {
+public class Factory implements Customer {
     private final String factoryID;
     private final String name;
     private double balance;
@@ -184,5 +184,10 @@ public class Factory {
         }
         byproducts.put(name, available - amount);
         balance -= totalCost;
+    }
+
+    @Override
+    public String getCustomerID() {
+        return factoryID;
     }
 } 
