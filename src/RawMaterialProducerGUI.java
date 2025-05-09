@@ -2,7 +2,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 
 public class RawMaterialProducerGUI extends MyWindow {
     DefaultListModel<String> producerListModel;
@@ -13,23 +12,7 @@ public class RawMaterialProducerGUI extends MyWindow {
     private static boolean initialized = false;
 
     public static java.util.List<RawMaterialProducer> getAllProducers() {
-        if (!initialized) {
-            allProducers.clear();
-            for (int i = 0; i < 6; i++) {
-                allProducers.add(new RawMaterialProducer(
-                    "Copper_" + i,
-                    5000.0,
-                    1200.0,
-                    new RawMaterial("Copper"),
-                    10.0
-                ));
-                allProducers.get(i).setBalance(5000.0);
-                allProducers.get(i).setStorageCapacity(1200.0);
-                allProducers.get(i).setSellingPrice(10.0);
-                allProducers.get(i).setProducerName("Copper_" + i);
-            }
-            initialized = true;
-        }
+
         return allProducers;
     }
 
@@ -37,7 +20,6 @@ public class RawMaterialProducerGUI extends MyWindow {
         super("Raw Material Producers");
         setLayout(new BorderLayout());
 
-        // Top panel with title and Back button
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         JLabel titleLabel = new JLabel("Raw Material Producers");
@@ -55,7 +37,6 @@ public class RawMaterialProducerGUI extends MyWindow {
         scrollPane.setPreferredSize(new Dimension(350, 200));
         add(scrollPane, BorderLayout.CENTER);
 
-        // Bottom panel with Add/Edit buttons
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton addButton = new JButton("Add New Producer");
@@ -64,7 +45,6 @@ public class RawMaterialProducerGUI extends MyWindow {
         bottomPanel.add(editButton);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Remove dummy data initialization from here
         producers = getAllProducers();
         refreshProducerList();
 

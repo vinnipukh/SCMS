@@ -1,5 +1,4 @@
 import java.util.HashMap;
-import java.util.Map; // Not strictly needed for this version, but good for options
 
 public class RawMaterialProducer implements Customer {
     private String producerName;
@@ -8,9 +7,9 @@ public class RawMaterialProducer implements Customer {
     private double balance;
     private double storageCapacity;
 
-    private RawMaterial materialProduced; // The specific raw material this producer makes
-    private double currentStockOfMaterial;   // Current stock of 'materialProduced'
-    private double sellingPrice;             // Selling price for 'materialProduced'
+    private RawMaterial materialProduced;
+    private double currentStockOfMaterial;
+    private double sellingPrice;
 
     /**
      * Constructs a RawMaterialProducer.
@@ -46,7 +45,6 @@ public class RawMaterialProducer implements Customer {
         this.currentStockOfMaterial = 0.0; // Producers typically start with 0 stock
     }
 
-    // --- Implementation of Customer interface ---
     @Override
     public String getName() {
         return this.producerName;
@@ -136,7 +134,6 @@ public class RawMaterialProducer implements Customer {
      * @param amountToProduce The amount of raw material to produce. Must be positive.
      * @throws IllegalArgumentException if amountToProduce is not positive.
      * @throws IllegalStateException if there are insufficient funds for production,
-     *                               or if there is not enough storage capacity.
      */
     public void produce(double amountToProduce) {
         if (amountToProduce <= 0) {

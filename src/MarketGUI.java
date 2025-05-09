@@ -1,6 +1,3 @@
-// ================================================
-// FILE: src/MarketGUI.java (Corrected and Refactored)
-// ================================================
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -81,6 +78,7 @@ public class MarketGUI extends MyWindow {
 
         pack();
         setLocationRelativeTo(null);
+        setVisible(true);
 
     }
 
@@ -206,12 +204,6 @@ public class MarketGUI extends MyWindow {
         }
     }
 
-// ================================================
-// FILE: src/MarketGUI.java (MarketDetailPage visually updated)
-// ================================================
-// ... (Keep MarketGUI main class, AddMarketDialog, EditMarketDialog as they were from the "Corrected and Refactored" version) ...
-
-    // --- Inner Class MarketDetailPage (Visually Updated to match PDF Page 9) ---
     class MarketDetailPage extends JDialog {
         private Market currentMarket;
         private MarketController marketController;
@@ -223,10 +215,10 @@ public class MarketGUI extends MyWindow {
         private JLabel sellerStockQtyLabel;
         private JTextField amountToBuyField;
         // For Setting Prices of Own Stock
-        private JComboBox<String> ownStockProductCombo; // To select product from own stock
+        private JComboBox<String> ownStockProductCombo;
         private JTextField priceForOwnStockField;
         // Helper list for product buying
-        private List<Object[]> availableProductsForSale; // [Product, price, current stock, sellerEntity (Market/Factory)]
+        private List<Object[]> availableProductsForSale;
 
 
         public MarketDetailPage(Frame owner, Market market, MarketController marketCtrl, java.util.List<Factory> factories) {
@@ -239,24 +231,22 @@ public class MarketGUI extends MyWindow {
             setLayout(new BorderLayout(10,10));
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-            // --- Top Panel: Title and Back Button ---
             JPanel topPanel = new JPanel(new BorderLayout());
-            topPanel.setBorder(new EmptyBorder(5, 10, 5, 10)); // Added padding
+            topPanel.setBorder(new EmptyBorder(5, 10, 5, 10));
             JLabel titleLabel = new JLabel("Market: " + currentMarket.getName());
-            titleLabel.setFont(new Font("Arial", Font.BOLD, 14)); // Slightly larger font
+            titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
             topPanel.add(titleLabel, BorderLayout.WEST);
             JButton backButton = new JButton("Back");
             backButton.addActionListener(e -> dispose());
             topPanel.add(backButton, BorderLayout.EAST);
             add(topPanel, BorderLayout.NORTH);
 
-            // --- Main Content Panel ---
             JPanel mainContentPanel = new JPanel();
             mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.Y_AXIS));
             mainContentPanel.setBorder(new EmptyBorder(15, 20, 15, 20)); // Padding
 
-            Dimension labelDim = new Dimension(120, 25); // For consistent label width
-            Dimension fieldDim = new Dimension(180, 25); // For consistent field width
+            Dimension labelDim = new Dimension(120, 25);
+            Dimension fieldDim = new Dimension(180, 25);
 
             // Balance Display
             JPanel balancePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
@@ -308,13 +298,7 @@ public class MarketGUI extends MyWindow {
 
             mainContentPanel.add(Box.createRigidArea(new Dimension(0, 15))); // Spacer
 
-            // --- Setting Price for Own Stock Section ---
-            // Own Stock Product Selection (for setting price) - PDF doesn't show this selection, assumes one product or implicit selection
-            // To match PDF closely for "Price (for stock)" we'd need a way to select which owned product.
-            // Let's add a JComboBox for owned products if there are multiple.
-            // If the intent of "Price (for stock)" is to set a price for the *last bought* or *a specific product*,
-            // the UI needs to reflect that. The PDF is ambiguous here if market owns multiple items.
-            // For now, assuming we allow setting price for any item in own stock.
+            //  Setting Price for Own Stock Section ---
             JPanel selectOwnStockPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
             JLabel selectOwnStockLabel = new JLabel("Your Product:"); // Label for clarity
             selectOwnStockLabel.setPreferredSize(labelDim);
@@ -391,7 +375,6 @@ public class MarketGUI extends MyWindow {
                     updateSellerStockQtyLabel();
                     amountToBuyField.setText("");
 
-                    // Buying might add new product types to own stock, so refresh that combo too
                     int previousOwnStockSelection = ownStockProductCombo.getSelectedIndex();
                     populateOwnStockProductCombo();
                     if(ownStockProductCombo.getItemCount() > 0){
@@ -421,7 +404,6 @@ public class MarketGUI extends MyWindow {
                     return;
                 }
 
-                // Get the actual Product object from the combo box selection
                 String selectedItemName = ((String) ownStockProductCombo.getSelectedItem()).split(" \\(")[0].trim(); // Get name part
                 Product productToUpdate = findProductInMarketInventoryByName(selectedItemName);
 
@@ -430,7 +412,6 @@ public class MarketGUI extends MyWindow {
                     try {
                         currentMarket.setProductPrice(productToUpdate, newPrice);
                         JOptionPane.showMessageDialog(this, "Price updated successfully for " + productToUpdate.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                        // No need to repopulate, just ensure field reflects the new price if user changes selection
                         updatePriceForOwnStockField();
                     } catch (IllegalArgumentException ex) {
                         JOptionPane.showMessageDialog(this, ex.getMessage(), "Price Update Error", JOptionPane.ERROR_MESSAGE);
@@ -441,7 +422,7 @@ public class MarketGUI extends MyWindow {
             });
 
             pack();
-            setMinimumSize(new Dimension(480, 420)); // Adjusted minimum size
+            setMinimumSize(new Dimension(480, 420));
             setLocationRelativeTo(owner);
             setVisible(true);
         }
@@ -465,7 +446,6 @@ public class MarketGUI extends MyWindow {
                     int stock = entry.getValue();
                     if (stock > 0) {
                         double price = otherMarket.getProductPrice(p);
-                        // Format: "Factory_0 | Copper"
                         availableProductsForSale.add(new Object[]{p, price, stock, otherMarket});
                         productToBuyCombo.addItem(String.format("%s | %s", otherMarket.getName(), p.getName()));
                     }
@@ -501,10 +481,9 @@ public class MarketGUI extends MyWindow {
         private void updateSellerStockQtyLabel() {
             int selectedIdx = productToBuyCombo.getSelectedIndex();
             if (selectedIdx >= 0 && selectedIdx < availableProductsForSale.size()) {
-                // availableProductsForSale stores: [Product, price, stock, sellerEntity]
-                sellerStockQtyLabel.setText(String.valueOf(availableProductsForSale.get(selectedIdx)[2])); // Index 2 is stock
+                sellerStockQtyLabel.setText(String.valueOf(availableProductsForSale.get(selectedIdx)[2]));
             } else {
-                sellerStockQtyLabel.setText("0"); // Match PDF which shows 0 when selection implies no stock info
+                sellerStockQtyLabel.setText("0");
             }
         }
 
@@ -517,7 +496,6 @@ public class MarketGUI extends MyWindow {
             } else {
                 ownStockProductCombo.setEnabled(true);
                 for (Map.Entry<Product, Integer> entry : stock.entrySet()) {
-                    // Display: "ProductName (Qty: X, Cost: Y.YY, Price: Z.ZZ)"
                     Product p = entry.getKey();
                     ownStockProductCombo.addItem(String.format("%s (Qty: %d)", p.getName(), entry.getValue()));
                 }
@@ -545,7 +523,6 @@ public class MarketGUI extends MyWindow {
                 priceForOwnStockField.setEnabled(false);
             }
         }
-    } // End of MarketDetailPage
-// ... (Rest of MarketGUI: AddMarketDialog, EditMarketDialog remain the same)
+    }
         }
 

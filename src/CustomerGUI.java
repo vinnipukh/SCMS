@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 
 public class CustomerGUI extends JFrame {
+
     private DefaultListModel<String> customerListModel;
     private JList<String> customerList;
     private CustomerController customerController;
@@ -57,7 +58,7 @@ public class CustomerGUI extends JFrame {
         refreshCustomerList();
 
         addButton.addActionListener(e -> {
-            new AddCustomerDialog(this); // 'this' is the CustomerGUI instance
+            new AddCustomerDialog(this);
             refreshCustomerList();
         });
 
@@ -67,7 +68,6 @@ public class CustomerGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please select a customer to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            // Ensure list matches controller's list order or find by ID
             Customers selectedCustomer = customerController.getCustomers().get(selectedIndex);
             new EditCustomerDialog(this, selectedCustomer);
             refreshCustomerList();
@@ -135,7 +135,6 @@ public class CustomerGUI extends JFrame {
         }
     }
 
-    // --- Inner Class for AddCustomerDialog ---
     class AddCustomerDialog extends JDialog {
         private JTextField nameField;
         private JTextField balanceField;
@@ -185,8 +184,6 @@ public class CustomerGUI extends JFrame {
                         return;
                     }
                     customerController.addCustomer(new Customers(name, balance));
-                    // No need to call parentGUI.refreshCustomerList() explicitly,
-                    // refreshCustomerList() is a method of the outer class CustomerGUI
                     CustomerGUI.this.refreshCustomerList();
                     dispose();
                 } catch (IllegalArgumentException ex) {
@@ -198,7 +195,6 @@ public class CustomerGUI extends JFrame {
         }
     }
 
-    // --- Inner Class for EditCustomerDialog ---
     class EditCustomerDialog extends JDialog {
         private JTextField nameField;
         private JTextField balanceField;
@@ -256,7 +252,6 @@ public class CustomerGUI extends JFrame {
         }
     }
 
-    // --- Inner Class for CustomerDetailPage ---
     class CustomerDetailPage extends JDialog {
         private Customers customer;
         private JLabel balanceValueLabel;
@@ -316,22 +311,15 @@ public class CustomerGUI extends JFrame {
             balanceValueLabel.setText(String.format("%.2f", customer.getBalance()));
         }
     }
-// ================================================
-// FILE: src/CustomerGUI.java (CustomerShoppingPage revised layout)
-// ================================================
-// ... (Keep the rest of CustomerGUI.java as it was from the previous response) ...
-// ... (Including CustomerGUI class, AddCustomerDialog, EditCustomerDialog, CustomerDetailPage) ...
-
-    // --- Inner Class for CustomerShoppingPage (Matches PDF Page 11, top - REVISED LAYOUT) ---
     class CustomerShoppingPage extends JDialog {
         private Customers customer;
         private JComboBox<String> productSelectionCombo;
-        private JLabel stockAmountLabelValue; // Label to display the stock value
+        private JLabel stockAmountLabelValue;
         private JTextField amountToBuyField;
         private List<MarketProductEntry> availableMarketProducts;
-        private CustomerDetailPage parentCustomerDetailDialog; // To refresh balance on parent
+        private CustomerDetailPage parentCustomerDetailDialog;
 
-        private class MarketProductEntry { // Helper class to map combo string to actual objects
+        private class MarketProductEntry {
             Market market; Product product; int stock; double price;
             MarketProductEntry(Market m, Product p, int s, double pr) { market=m; product=p; stock=s; price=pr; }
             @Override public String toString() { // Format: Market_0 | Cable_0
@@ -360,15 +348,14 @@ public class CustomerGUI extends JFrame {
             topShoppingPanel.add(backShoppingButton, BorderLayout.EAST);
             add(topShoppingPanel, BorderLayout.NORTH);
 
-            // --- Form Panel using BoxLayout and nested JPanels for rows ---
             JPanel formPanel = new JPanel();
-            formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS)); // Stack rows vertically
+            formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
             formPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
 
-            Dimension labelSize = new Dimension(120, 25); // Preferred size for labels for alignment
-            Dimension fieldSize = new Dimension(200, 25); // Preferred size for fields
+            Dimension labelSize = new Dimension(120, 25);
+            Dimension fieldSize = new Dimension(200, 25);
 
-            // Row 1: Select Product
+            // Select Product
             JPanel productRowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
             JLabel productLabel = new JLabel("Select Product:");
             productLabel.setPreferredSize(labelSize);
@@ -376,23 +363,23 @@ public class CustomerGUI extends JFrame {
             productSelectionCombo = new JComboBox<>();
             productSelectionCombo.setPreferredSize(fieldSize);
             productRowPanel.add(productSelectionCombo);
-            productRowPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // Align panel itself
+            productRowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
             formPanel.add(productRowPanel);
 
-            // Row 2: Stock Amount
+            //  Stock Amount
             JPanel stockRowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
             JLabel stockLabel = new JLabel("Stock Amount:");
             stockLabel.setPreferredSize(labelSize);
             stockRowPanel.add(stockLabel);
             stockAmountLabelValue = new JLabel("0");
-            stockAmountLabelValue.setPreferredSize(fieldSize); // Give it similar space
+            stockAmountLabelValue.setPreferredSize(fieldSize);
             stockRowPanel.add(stockAmountLabelValue);
             stockRowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
             formPanel.add(stockRowPanel);
 
-            // Row 3: Amount to Buy
+            //  Amount to Buy
             JPanel amountRowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-            JLabel amountLabelText = new JLabel("Amount:"); // Renamed from amountLabel
+            JLabel amountLabelText = new JLabel("Amount:");
             amountLabelText.setPreferredSize(labelSize);
             amountRowPanel.add(amountLabelText);
             amountToBuyField = new JTextField();
@@ -425,7 +412,7 @@ public class CustomerGUI extends JFrame {
                 }
 
                 MarketProductEntry selectedEntry = availableMarketProducts.get(selectedIndex);
-                int amountToBuyNum; // Renamed from amountToBuy
+                int amountToBuyNum;
                 try {
                     amountToBuyNum = Integer.parseInt(amountToBuyField.getText().trim());
                     if (amountToBuyNum <= 0) {
@@ -442,9 +429,10 @@ public class CustomerGUI extends JFrame {
                     JOptionPane.showMessageDialog(this, "Purchase successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                     populateProductCombo();
+
+                    // NOTE TO SELF: DO NOT TOUCH THE FOLLOWING METHOD. IT PREVENTS A LOT OF ERRORS.
+
                     if (productSelectionCombo.getItemCount() > 0) {
-                        // Attempt to reselect or select first. If list structure changes dramatically,
-                        // simple reselection by index might not be perfect.
                         int newSelectionIndex = Math.min(selectedIndex, productSelectionCombo.getItemCount() - 1);
                         if (newSelectionIndex >=0) productSelectionCombo.setSelectedIndex(newSelectionIndex);
                         else if (productSelectionCombo.getItemCount() > 0) productSelectionCombo.setSelectedIndex(0);
@@ -464,7 +452,7 @@ public class CustomerGUI extends JFrame {
             });
 
             pack();
-            setMinimumSize(new Dimension(450, 230)); // Adjust as needed
+            setMinimumSize(new Dimension(450, 230));
             setLocationRelativeTo(owner);
             setVisible(true);
         }
@@ -511,9 +499,6 @@ public class CustomerGUI extends JFrame {
         }
     }
 
-    // ... (CustomerInventoryPage and DefaultListModelSelectionModel inner classes remain the same) ...
-// ... (End of CustomerGUI class) ...
-    // --- Inner Class for CustomerInventoryPage ---
     class CustomerInventoryPage extends JDialog {
         private Customers customer;
 
@@ -526,7 +511,6 @@ public class CustomerGUI extends JFrame {
             setLocationRelativeTo(owner);
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-            // Top: Title and Back button
             JPanel topPanel = new JPanel(new BorderLayout());
             topPanel.setBorder(new EmptyBorder(5,5,5,5));
             JLabel title = new JLabel("Inventory - Customer: " + customer.getName() +
@@ -537,7 +521,6 @@ public class CustomerGUI extends JFrame {
             topPanel.add(backButton, BorderLayout.EAST);
             add(topPanel, BorderLayout.NORTH);
 
-            // Center: Inventory List
             DefaultListModel<String> inventoryListModel = new DefaultListModel<>();
             JList<String> inventoryDisplayList = new JList<>(inventoryListModel);
             JScrollPane scrollPane = new JScrollPane(inventoryDisplayList);
@@ -550,7 +533,6 @@ public class CustomerGUI extends JFrame {
                 for (Map.Entry<Product, Integer> entry : inventory.entrySet()) {
                     Product product = entry.getKey();
                     Integer quantity = entry.getValue();
-                    // Format: - Cable_4: 5 (as per screenshot)
                     inventoryListModel.addElement(String.format("- %s: %d", product.getName(), quantity));
                 }
             }

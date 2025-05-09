@@ -92,7 +92,6 @@ public class FactoryGUI extends MyWindow {
     }
 }
 
-// Dialog for factory details (individual factory page)
 class FactoryDetailPage extends JDialog {
     public FactoryDetailPage(Factory factory) {
         super((JFrame) null, "Factory: " + factory.getName(), true);
@@ -107,12 +106,10 @@ class FactoryDetailPage extends JDialog {
         topPanel.add(backButton, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
-        // Main panel with BoxLayout (vertical)
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(new EmptyBorder(20, 40, 20, 40));
 
-        // Helper for row panels
         int rowHeight = 32;
         int labelWidth = 130;
         int fieldWidth = 200;
@@ -174,7 +171,7 @@ class FactoryDetailPage extends JDialog {
         amountPanel.add(amountField);
         mainPanel.add(amountPanel);
 
-        // Buy button (full width, centered)
+        // Buy button
         JButton buyButton = new JButton("Buy");
         buyButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowHeight));
         buyButton.setPreferredSize(new Dimension(fieldWidth + labelWidth, rowHeight));
@@ -182,7 +179,7 @@ class FactoryDetailPage extends JDialog {
         buyButtonPanel.add(buyButton);
         mainPanel.add(buyButtonPanel);
 
-        // Action buttons (full width, centered, stacked)
+
         Dimension buttonSize = new Dimension(fieldWidth + labelWidth, rowHeight);
         JButton createDesignButton = new JButton("Create Design");
         createDesignButton.setMaximumSize(buttonSize);
@@ -211,7 +208,6 @@ class FactoryDetailPage extends JDialog {
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // Buy logic (find producer by selected combo entry)
         buyButton.addActionListener(e -> {
             try {
                 String selectedEntry = (String) rawMaterialCombo.getSelectedItem();
@@ -265,7 +261,6 @@ class FactoryDetailPage extends JDialog {
             }
         });
 
-        // Action button listeners
         createDesignButton.addActionListener(e -> new CreateDesignDialog(factory, null, () -> {}, () -> {}));
         produceButton.addActionListener(e -> new ProduceDialog(factory, balanceValueLabel));
         destroyButton.addActionListener(e -> new DestroyDialog(factory, balanceValueLabel));
@@ -277,7 +272,6 @@ class FactoryDetailPage extends JDialog {
     }
 }
 
-// Dialog for adding a new factory
 class AddFactoryDialog extends JDialog {
     public AddFactoryDialog(FactoryGUI parent) {
         super((JFrame) null, "Add New Factory", true);
@@ -324,7 +318,6 @@ class AddFactoryDialog extends JDialog {
     }
 }
 
-// Dialog for editing a factory
 class EditFactoryDialog extends JDialog {
     public EditFactoryDialog(FactoryGUI parent, Factory factory) {
         super((JFrame) null, "Edit Factory", true);
@@ -355,7 +348,6 @@ class EditFactoryDialog extends JDialog {
                 if (name.isEmpty()) throw new IllegalArgumentException("Name cannot be empty.");
                 if (balance < 0) throw new IllegalArgumentException("Balance cannot be negative.");
                 if (capacity <= 0) throw new IllegalArgumentException("Capacity must be positive.");
-                // Only update balance and capacity (name is final in Factory model)
                 factory.setBalance(balance);
                 factory.setCapacity(capacity);
                 parent.refreshFactoryList();
@@ -373,7 +365,6 @@ class EditFactoryDialog extends JDialog {
     }
 }
 
-// Dialog for creating a new product design
 class CreateDesignDialog extends JDialog {
     public CreateDesignDialog(Factory factory, JComboBox<String> designCombo, Runnable updateInventory, Runnable updateByproductCombo) {
         super((JFrame) null, "Create Design", true);
@@ -385,7 +376,6 @@ class CreateDesignDialog extends JDialog {
         JTextField byproductNameField = new JTextField();
         JTextField byproductAmountField = new JTextField();
         JTextField byproductCostField = new JTextField();
-        // Raw material selection
         java.util.Set<String> rawMaterialNames = new java.util.HashSet<>();
         for (RawMaterialProducer p : RawMaterialProducerGUI.getAllProducers()) {
             rawMaterialNames.add(p.getMaterialProduced().getName());
@@ -493,7 +483,6 @@ class CreateDesignDialog extends JDialog {
                 }
                 Product product = new Product(productName, productCost);
                 ByProduct byproduct = new ByProduct(byproductName, byproductCost);
-                // Use the first input as the main raw material for ProductDesign constructor
                 RawMaterial mainRaw = new RawMaterial(inputRequirements.keySet().iterator().next());
                 ProductDesign design = new ProductDesign(product, byproduct, mainRaw);
                 design.setByproductAmount(byproductAmount);
@@ -519,7 +508,6 @@ class CreateDesignDialog extends JDialog {
     }
 }
 
-// --- ProduceDialog ---
 class ProduceDialog extends JDialog {
     public ProduceDialog(Factory factory, JLabel balanceValueLabel) {
         super((JFrame) null, "Produce Product", true);
@@ -565,7 +553,6 @@ class ProduceDialog extends JDialog {
     }
 }
 
-// --- DestroyDialog ---
 class DestroyDialog extends JDialog {
     public DestroyDialog(Factory factory, JLabel balanceValueLabel) {
         super((JFrame) null, "Destroy Byproducts", true);
@@ -592,7 +579,7 @@ class DestroyDialog extends JDialog {
             try {
                 String byproduct = (String) byproductCombo.getSelectedItem();
                 int amount = Integer.parseInt(amountField.getText().trim());
-                double cost = 5; // Use a fixed cost per unit
+                double cost = 5;
                 factory.destroyByproduct(byproduct, amount, cost);
                 balanceValueLabel.setText(String.valueOf(factory.getBalance()));
                 JOptionPane.showMessageDialog(this, "Byproduct destroyed!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -610,7 +597,6 @@ class DestroyDialog extends JDialog {
     }
 }
 
-// --- InventoryDialog ---
 class InventoryDialog extends JDialog {
     public InventoryDialog(Factory factory) {
         super((JFrame) null, "Inventory - " + factory.getName(), true);

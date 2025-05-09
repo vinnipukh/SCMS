@@ -1,6 +1,3 @@
-// ================================================
-// FILE: src/ConcreteCustomer.java
-// ================================================
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -9,7 +6,7 @@ public class Customers implements Customer {
     private String name;
     private double balance;
     private final String customerID;
-    private Map<Product, Integer> inventory; // Product object as key
+    private Map<Product, Integer> inventory;
     private static int nextID = 0;
 
     public Customers(String name, double initialBalance) {
@@ -43,8 +40,6 @@ public class Customers implements Customer {
     }
 
     public void setBalance(double balance) {
-        // For direct setting, we might allow any value,
-        // but purchase logic will prevent going into unplanned debt.
         this.balance = balance;
     }
 
@@ -54,7 +49,6 @@ public class Customers implements Customer {
     }
 
     public Map<Product, Integer> getInventory() {
-        // Return a defensive copy if you want to prevent external modification of the internal map
         return new HashMap<>(inventory);
     }
 
@@ -98,18 +92,15 @@ public class Customers implements Customer {
                     ", Available: " + String.format("%.2f", this.balance));
         }
 
-        // Check market stock (Market's inventory uses Product as key)
         int marketStock = sellerMarket.getInventory().getOrDefault(product, 0);
         if (marketStock < quantity) {
             throw new IllegalStateException("Market " + sellerMarket.getName() + " does not have enough stock of " + product.getName() +
                     ". Available: " + marketStock + ", Requested: " + quantity);
         }
 
-        // If all checks pass, proceed with transaction
         this.balance -= totalCost;
         this.addToInventory(product, quantity);
 
-        // Notify the market to update its inventory and balance
         sellerMarket.sellProductToCustomer(product, quantity, this);
     }
 
