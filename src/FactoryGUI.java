@@ -9,15 +9,10 @@ public class FactoryGUI extends MyWindow {
     JList<String> factoryList;
     FactoryController controller;
 
-    public FactoryGUI() {
+    public FactoryGUI(FactoryController controller) {
         super("Factories");
         setLayout(new BorderLayout());
-
-        controller = new FactoryController();
-        // Dummy data for demonstration
-        for (int i = 0; i < 6; i++) {
-            controller.addFactory(new Factory("Factory_" + i, 10000.0, 2000));
-        }
+        this.controller = controller;
 
         // Top panel with title and Back button
         JPanel topPanel = new JPanel(new BorderLayout());

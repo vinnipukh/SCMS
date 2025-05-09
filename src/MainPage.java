@@ -10,10 +10,12 @@ import java.awt.event.ActionListener;
  *
  */
 public class MainPage extends MyWindow{
-    
+    FactoryController factoryController;
+
     public MainPage(){
         super("Supply Chain Management System");
 
+        factoryController = new FactoryController();
         
         setLayout(new BorderLayout(10,10));
         
@@ -45,10 +47,10 @@ public class MainPage extends MyWindow{
             new RawMaterialProducerGUI();
         });
         factoriesButton.addActionListener(e -> {
-            new FactoryGUI();
+            new FactoryGUI(factoryController);
         });
         marketsButton.addActionListener(e -> {
-            new MarketGUI();
+            new MarketGUI(factoryController.getFactories());
         });
 
         mainPanel.add(rmcsButton);
