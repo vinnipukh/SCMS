@@ -1,43 +1,44 @@
+// ================================================
+// FILE: src/MarketGUI.java (Corrected and Refactored)
+// ================================================
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class MarketGUI extends MyWindow {
-    DefaultListModel<String> marketListModel;
-    JList<String> marketList;
-    java.util.List<Market> markets;
-    java.util.List<Factory> factories;
+    private DefaultListModel<String> marketListModel;
+    private JList<String> marketList;
+    private MarketController marketController;
+    private java.util.List<Factory> factories;
 
-    public MarketGUI(java.util.List<Factory> factories) {
+    public MarketGUI(java.util.List<Factory> factories, MarketController marketController) {
         super("Markets");
         this.factories = factories;
-        setLayout(new BorderLayout());
-        markets = new ArrayList<>();
-        // Dummy data for demonstration
-        for (int i = 0; i < 6; i++) {
-            markets.add(new Market("Market_" + i, 5000.0));
-        }
+        this.marketController = marketController;
 
-        // Top panel with title and Back button
+        setLayout(new BorderLayout());
+
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         JLabel titleLabel = new JLabel("Market List");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 13));
         topPanel.add(titleLabel, BorderLayout.WEST);
         JButton backButton = new JButton("Back");
         backButton.addActionListener(e -> dispose());
         topPanel.add(backButton, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
-        // List of markets
         marketListModel = new DefaultListModel<>();
         marketList = new JList<>(marketListModel);
         JScrollPane scrollPane = new JScrollPane(marketList);
         scrollPane.setPreferredSize(new Dimension(350, 200));
         add(scrollPane, BorderLayout.CENTER);
 
-        // Bottom panel with Add/Edit buttons
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton addButton = new JButton("Add New Market");
@@ -48,20 +49,21 @@ public class MarketGUI extends MyWindow {
 
         refreshMarketList();
 
-        // Double-click to open detail page
         marketList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
                     int index = marketList.locationToIndex(evt.getPoint());
-                    if (index >= 0 && index < markets.size()) {
-                        new MarketDetailPage(markets.get(index), markets, factories);
+                    List<Market> currentMarkets = marketController.getMarkets();
+                    if (index >= 0 && index < currentMarkets.size()) {
+                        new MarketDetailPage(MarketGUI.this, currentMarkets.get(index), marketController, factories);
+                        refreshMarketList();
                     }
                 }
             }
         });
 
         addButton.addActionListener(e -> {
-            new AddMarketDialog(MarketGUI.this);
+            new AddMarketDialog(MarketGUI.this, marketController);
             refreshMarketList();
         });
 
@@ -71,426 +73,462 @@ public class MarketGUI extends MyWindow {
                 JOptionPane.showMessageDialog(this, "Please select a market to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            new EditMarketDialog(MarketGUI.this, markets.get(selectedIndex));
+            List<Market> currentMarkets = marketController.getMarkets();
+            Market selectedMarket = currentMarkets.get(selectedIndex);
+            new EditMarketDialog(MarketGUI.this, selectedMarket, marketController);
             refreshMarketList();
         });
 
         pack();
         setLocationRelativeTo(null);
-        setVisible(true);
+
     }
 
     void refreshMarketList() {
         marketListModel.clear();
+        List<Market> currentMarkets = marketController.getMarkets();
         Map<String, Integer> nameCount = new HashMap<>();
-        for (Market m : markets) {
+        for (Market m : currentMarkets) {
             nameCount.put(m.getName(), nameCount.getOrDefault(m.getName(), 0) + 1);
         }
-        for (Market m : markets) {
+        for (Market m : currentMarkets) {
             String display = m.getName();
             if (nameCount.get(m.getName()) > 1) {
-                display += " (" + m.getCustomerID() + ")";
+                display += " (" + m.getMarketID() + ")";
             }
             marketListModel.addElement(display);
         }
     }
-}
 
-// Market detail page
-class MarketDetailPage extends JDialog {
-    public MarketDetailPage(Market market, java.util.List<Market> allMarkets, java.util.List<Factory> allFactories) {
-        super((JFrame) null, "Market: " + market.getName(), true);
-        setLayout(new BorderLayout());
-        
-        // Top panel with title and back button
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        JLabel titleLabel = new JLabel("Market: " + market.getName());
-        topPanel.add(titleLabel, BorderLayout.WEST);
-        JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> dispose());
-        topPanel.add(backButton, BorderLayout.EAST);
-        add(topPanel, BorderLayout.NORTH);
+    class AddMarketDialog extends JDialog {
+        private MarketController controller;
 
-        // Main content panel using BoxLayout
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
+        public AddMarketDialog(Frame owner, MarketController marketController) {
+            super(owner, "Add New Market", true);
+            this.controller = marketController;
+            setLayout(new BorderLayout());
+            JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+            formPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+            JLabel nameLabel = new JLabel("Market Name:");
+            JTextField nameField = new JTextField();
+            JLabel balanceLabel = new JLabel("Initial Balance:");
+            JTextField balanceField = new JTextField();
+            formPanel.add(nameLabel); formPanel.add(nameField);
+            formPanel.add(balanceLabel); formPanel.add(balanceField);
+            add(formPanel, BorderLayout.CENTER);
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+            JButton okButton = new JButton("OK");
+            JButton cancelButton = new JButton("Cancel");
+            buttonPanel.add(okButton); buttonPanel.add(cancelButton);
+            add(buttonPanel, BorderLayout.SOUTH);
 
-        // Balance panel
-        JPanel balancePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        balancePanel.add(new JLabel("Balance:"));
-        JLabel balanceValueLabel = new JLabel(String.valueOf(market.getBalance()));
-        balancePanel.add(balanceValueLabel);
-        mainPanel.add(balancePanel);
-        mainPanel.add(Box.createVerticalStrut(15));
-
-        // Product selection panel
-        JPanel productPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        productPanel.add(new JLabel("Select Product:"));
-        JComboBox<String> productCombo = new JComboBox<>();
-        java.util.List<Object[]> availableProducts = new ArrayList<>(); // [Product, price, amount, seller]
-        
-        // Add products from factories
-        for (Factory factory : allFactories) {
-            for (Map.Entry<String, Integer> entry : factory.getProducts().entrySet()) {
-                if (entry.getValue() > 0) {
-                    String entryStr = factory.getName() + " | " + entry.getKey() + " | Price: " + getProductCost(entry.getKey(), factory) + " | Amount: " + entry.getValue() + " | Seller: " + factory.getName();
-                    productCombo.addItem(entryStr);
-                    availableProducts.add(new Object[]{entry.getKey(), getProductCost(entry.getKey(), factory), entry.getValue(), factory});
+            okButton.addActionListener(e -> {
+                String name = nameField.getText().trim();
+                String balanceText = balanceField.getText().trim();
+                double balance;
+                if (name.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
-            }
-        }
-        
-        // Add products from other markets
-        for (Market m : allMarkets) {
-            if (m == market) continue;
-            for (Map.Entry<Product, Integer> entry : m.getInventory().entrySet()) {
-                if (entry.getValue() > 0) {
-                    String entryStr = m.getName() + " | " + entry.getKey().getName() + " | Price: " + m.getProductPrice(entry.getKey()) + " | Amount: " + entry.getValue() + " | Seller: " + m.getName();
-                    productCombo.addItem(entryStr);
-                    availableProducts.add(new Object[]{entry.getKey(), m.getProductPrice(entry.getKey()), entry.getValue(), m});
+                try {
+                    balance = Double.parseDouble(balanceText);
+                    if (balance < 0) {
+                        JOptionPane.showMessageDialog(this, "Initial balance cannot be negative.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid non-negative number for balance.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
-            }
+                try {
+                    controller.addMarket(new Market(name, balance));
+                    dispose();
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Creation Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            cancelButton.addActionListener(e -> dispose());
+            setSize(350, 180);
+            setLocationRelativeTo(owner);
+            setVisible(true);
         }
-        productCombo.setPreferredSize(new Dimension(300, 25));
-        productPanel.add(productCombo);
-        mainPanel.add(productPanel);
-        mainPanel.add(Box.createVerticalStrut(15));
+    }
 
-        // Stock quantity panel
-        JPanel stockPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        stockPanel.add(new JLabel("Stock Quantity:"));
-        JLabel stockValueLabel = new JLabel("0");
-        stockPanel.add(stockValueLabel);
-        mainPanel.add(stockPanel);
-        mainPanel.add(Box.createVerticalStrut(15));
+    class EditMarketDialog extends JDialog {
+        private Market marketToEdit;
+        private MarketController controller;
 
-        // Amount panel
-        JPanel amountPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        amountPanel.add(new JLabel("Amount:"));
-        JTextField amountField = new JTextField(10);
-        amountPanel.add(amountField);
-        mainPanel.add(amountPanel);
-        mainPanel.add(Box.createVerticalStrut(15));
+        public EditMarketDialog(Frame owner, Market market, MarketController marketController) {
+            super(owner, "Edit Market", true);
+            this.marketToEdit = market;
+            this.controller = marketController;
+            setLayout(new BorderLayout());
+            JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+            formPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+            JLabel nameLabel = new JLabel("Market Name:");
+            JTextField nameField = new JTextField(marketToEdit.getName());
+            JLabel balanceLabel = new JLabel("Balance:");
+            JTextField balanceField = new JTextField(String.valueOf(marketToEdit.getBalance()));
+            formPanel.add(nameLabel); formPanel.add(nameField);
+            formPanel.add(balanceLabel); formPanel.add(balanceField);
+            add(formPanel, BorderLayout.CENTER);
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+            JButton okButton = new JButton("OK");
+            JButton cancelButton = new JButton("Cancel");
+            buttonPanel.add(okButton); buttonPanel.add(cancelButton);
+            add(buttonPanel, BorderLayout.SOUTH);
 
-        // Buy button panel
-        JPanel buyButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton buyButton = new JButton("Buy");
-        buyButtonPanel.add(buyButton);
-        mainPanel.add(buyButtonPanel);
-        mainPanel.add(Box.createVerticalStrut(20));
-
-        // Price panel
-        JPanel pricePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pricePanel.add(new JLabel("Price (for stock):"));
-        JTextField priceField = new JTextField(10);
-        pricePanel.add(priceField);
-        mainPanel.add(pricePanel);
-        mainPanel.add(Box.createVerticalStrut(15));
-
-        // Update price button panel
-        JPanel updatePricePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton setPriceButton = new JButton("Update Price");
-        updatePricePanel.add(setPriceButton);
-        mainPanel.add(updatePricePanel);
-
-        // Add main panel to dialog
-        add(mainPanel, BorderLayout.CENTER);
-
-        // Update stock quantity when product is selected
-        productCombo.addActionListener(e -> {
-            int idx = productCombo.getSelectedIndex();
-            if (idx >= 0 && idx < availableProducts.size()) {
-                int stock = (int) availableProducts.get(idx)[2];
-                stockValueLabel.setText(String.valueOf(stock));
-            } else {
-                stockValueLabel.setText("0");
-            }
-        });
-        if (productCombo.getItemCount() > 0) {
-            productCombo.setSelectedIndex(0);
+            okButton.addActionListener(e -> {
+                String name = nameField.getText().trim();
+                String balanceText = balanceField.getText().trim();
+                double balance;
+                if (name.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                try {
+                    balance = Double.parseDouble(balanceText);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid number for balance.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                try {
+                    controller.editMarket(marketToEdit.getMarketID(), name, balance);
+                    dispose();
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Update Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            cancelButton.addActionListener(e -> dispose());
+            setSize(350, 180);
+            setLocationRelativeTo(owner);
+            setVisible(true);
         }
+    }
 
-        // Buy button logic
-        buyButton.addActionListener(e -> {
-            int selectedIdx = productCombo.getSelectedIndex();
-            if (selectedIdx == -1) {
-                JOptionPane.showMessageDialog(this, "Please select a product to buy.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String amountText = amountField.getText().trim();
-            int amount;
-            try {
-                amount = Integer.parseInt(amountText);
-                if (amount <= 0) throw new NumberFormatException();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid positive integer for amount.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            Object[] prodInfo = availableProducts.get(selectedIdx);
-            Object productObj = prodInfo[0];
-            double price = (double) prodInfo[1];
-            int available = (int) prodInfo[2];
-            Object seller = prodInfo[3];
-            if (amount > available) {
-                JOptionPane.showMessageDialog(this, "Seller does not have enough stock.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            double totalCost = amount * price;
-            if (market.getBalance() < totalCost) {
-                JOptionPane.showMessageDialog(this, "You don't have enough funds to buy this product.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            try {
-                if (seller instanceof Factory) {
-                    // Find the Product object by name from allFactories
-                    String productName = (String) productObj;
-                    Product product = null;
-                    for (Factory f : allFactories) {
-                        for (ProductDesign design : f.getDesigns()) {
-                            if (design.getProduct().getName().equals(productName)) {
-                                product = design.getProduct();
-                                break;
-                            }
+    class MarketDetailPage extends JDialog {
+        private Market currentMarket;
+        private MarketController marketController;
+        private java.util.List<Factory> allFactories;
+        private JLabel balanceValueLabel;
+        private JComboBox<String> productCombo;
+        private JLabel stockValueLabel;
+        private JTextField amountField;
+        private List<Object[]> availableProductsForSale;
+        private JComboBox<String> marketStockProductCombo;
+        private JTextField priceFieldForStock;
+        private JLabel currentPriceLabelForOwnStock;
+
+// In MarketGUI.java
+// Inside class MarketDetailPage:
+
+        public MarketDetailPage(Frame owner, Market market, MarketController marketCtrl, java.util.List<Factory> factories) {
+            super(owner, "Market: " + market.getName(), true);
+            this.currentMarket = market;
+            this.marketController = marketCtrl;
+            this.allFactories = factories;
+            this.availableProductsForSale = new ArrayList<>();
+
+            setLayout(new BorderLayout());
+
+            JPanel topPanel = new JPanel(new BorderLayout());
+            topPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+            JLabel titleLabel = new JLabel("Market: " + currentMarket.getName());
+            titleLabel.setFont(new Font("Arial", Font.BOLD, 13));
+            topPanel.add(titleLabel, BorderLayout.WEST);
+            JButton backButton = new JButton("Back");
+            backButton.addActionListener(e -> dispose());
+            topPanel.add(backButton, BorderLayout.EAST);
+            add(topPanel, BorderLayout.NORTH);
+
+            JTabbedPane tabbedPane = new JTabbedPane();
+
+            // --- Initialize Components for Buy Products Tab FIRST ---
+            balanceValueLabel = new JLabel(String.format("%.2f", currentMarket.getBalance()));
+            productCombo = new JComboBox<>();
+            productCombo.setPreferredSize(new Dimension(350, 25));
+            stockValueLabel = new JLabel("0"); // Initialize here
+            amountField = new JTextField(10);
+            JButton buyButton = new JButton("Buy Selected Product");
+            buyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            // --- Build Buy Products Tab UI ---
+            JPanel buyPanel = new JPanel();
+            buyPanel.setLayout(new BoxLayout(buyPanel, BoxLayout.Y_AXIS));
+            buyPanel.setBorder(new EmptyBorder(10, 15, 10, 15));
+            JPanel balancePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            balancePanel.add(new JLabel("Balance:"));
+            balancePanel.add(balanceValueLabel); // Use initialized component
+            buyPanel.add(balancePanel);
+            buyPanel.add(Box.createVerticalStrut(10));
+            JPanel productSelectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            productSelectPanel.add(new JLabel("Select Product to Buy:"));
+            productSelectPanel.add(productCombo); // Use initialized component
+            buyPanel.add(productSelectPanel);
+            JPanel stockInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            stockInfoPanel.add(new JLabel("Seller's Stock:"));
+            stockInfoPanel.add(stockValueLabel); // Use initialized component
+            buyPanel.add(stockInfoPanel);
+            JPanel amountToBuyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            amountToBuyPanel.add(new JLabel("Amount:"));
+            amountToBuyPanel.add(amountField); // Use initialized component
+            buyPanel.add(amountToBuyPanel);
+            buyPanel.add(Box.createVerticalStrut(10));
+            buyPanel.add(buyButton); // Use initialized component
+            tabbedPane.addTab("Buy Products", buyPanel);
+
+            // --- Initialize Components for Set Prices Tab FIRST ---
+            marketStockProductCombo = new JComboBox<>();
+            marketStockProductCombo.setPreferredSize(new Dimension(300, 25));
+            currentPriceLabelForOwnStock = new JLabel("N/A");
+            priceFieldForStock = new JTextField(10);
+            JButton updatePriceButton = new JButton("Update Price for Selected Product");
+            updatePriceButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            // --- Build Set Prices Tab UI ---
+            JPanel setPricePanel = new JPanel();
+            setPricePanel.setLayout(new BoxLayout(setPricePanel, BoxLayout.Y_AXIS));
+            setPricePanel.setBorder(new EmptyBorder(10, 15, 10, 15));
+            setPricePanel.add(new JLabel("Manage Prices for Your Stock:"));
+            setPricePanel.add(Box.createVerticalStrut(5));
+            JPanel marketStockSelectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            marketStockSelectPanel.add(new JLabel("Your Product:"));
+            marketStockSelectPanel.add(marketStockProductCombo); // Use initialized component
+            setPricePanel.add(marketStockSelectPanel);
+            JPanel currentPriceInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            currentPriceInfoPanel.add(new JLabel("Current Price:"));
+            currentPriceInfoPanel.add(currentPriceLabelForOwnStock); // Use initialized component
+            setPricePanel.add(currentPriceInfoPanel);
+            JPanel newPricePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            newPricePanel.add(new JLabel("New Price:"));
+            newPricePanel.add(priceFieldForStock); // Use initialized component
+            setPricePanel.add(newPricePanel);
+            setPricePanel.add(Box.createVerticalStrut(10));
+            setPricePanel.add(updatePriceButton); // Use initialized component
+            tabbedPane.addTab("Set Prices", setPricePanel);
+
+            add(tabbedPane, BorderLayout.CENTER);
+
+            // --- NOW Populate and Add Listeners ---
+            populateBuyProductCombo(); // Safe to call now
+            productCombo.addActionListener(e -> updateSellerStockInfo());
+            if (productCombo.getItemCount() > 0) productCombo.setSelectedIndex(0);
+            else updateSellerStockInfo(); // Ensure consistent state even if empty
+
+            populateMarketStockCombo(); // Safe to call now
+            marketStockProductCombo.addActionListener(e -> updateMarketStockPriceInfo());
+            updateMarketStockPriceInfo(); // Initial call after populating
+
+            buyButton.addActionListener(e -> {
+                // ... (buyButton listener code remains the same) ...
+                int selectedIdx = productCombo.getSelectedIndex();
+                if (selectedIdx < 0 || selectedIdx >= availableProductsForSale.size()) {
+                    JOptionPane.showMessageDialog(this, "Please select a product to buy.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String amountText = amountField.getText().trim();
+                int amount;
+                try {
+                    amount = Integer.parseInt(amountText);
+                    if (amount <= 0) throw new NumberFormatException("Amount must be positive.");
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid positive integer for amount.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Object[] prodInfo = availableProductsForSale.get(selectedIdx);
+                Product productToBuy = (Product) prodInfo[0];
+                double priceFromSeller = (double) prodInfo[1];
+                Customer seller = (Customer) prodInfo[3];
+
+                try {
+                    currentMarket.buyProduct(productToBuy, amount, priceFromSeller, seller);
+                    balanceValueLabel.setText(String.format("%.2f", currentMarket.getBalance()));
+                    JOptionPane.showMessageDialog(this, "Purchase successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    // Refresh UI elements after purchase
+                    int previousBuySelection = productCombo.getSelectedIndex();
+                    populateBuyProductCombo();
+                    if(productCombo.getItemCount() > 0) {
+                        if(previousBuySelection < productCombo.getItemCount() && previousBuySelection != -1) {
+                            productCombo.setSelectedIndex(previousBuySelection);
+                        } else {
+                            productCombo.setSelectedIndex(0);
                         }
-                        if (product != null) break;
                     }
-                    if (product == null) {
-                        product = new Product(productName, price);
+                    updateSellerStockInfo(); // Update based on new selection or empty list
+
+                    amountField.setText("");
+
+                    int previousStockSelection = marketStockProductCombo.getSelectedIndex();
+                    populateMarketStockCombo(); // Also refresh own stock combo
+                    if(marketStockProductCombo.getItemCount() > 0) {
+                        if(previousStockSelection < marketStockProductCombo.getItemCount() && previousStockSelection != -1) {
+                            marketStockProductCombo.setSelectedIndex(previousStockSelection);
+                        } else {
+                            marketStockProductCombo.setSelectedIndex(0);
+                        }
                     }
-                    market.buyProduct(product, amount, price, (Factory) seller);
-                } else if (seller instanceof Market) {
-                    market.buyProduct((Product) productObj, amount, price, (Market) seller);
+                    updateMarketStockPriceInfo(); // Update based on new selection or empty list
+
+
+                } catch (IllegalStateException | IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(this, "Error during purchase: " + ex.getMessage(), "Purchase Error", JOptionPane.ERROR_MESSAGE);
                 }
-                balanceValueLabel.setText(String.valueOf(market.getBalance()));
-                stockValueLabel.setText(String.valueOf(available - amount));
-                JOptionPane.showMessageDialog(this, "Purchase successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            });
+
+            updatePriceButton.addActionListener(e -> {
+                // ... (updatePriceButton listener code remains the same) ...
+                int selectedIdx = marketStockProductCombo.getSelectedIndex();
+                if (selectedIdx == -1 || marketStockProductCombo.getSelectedItem().toString().startsWith("No products")) {
+                    JOptionPane.showMessageDialog(this, "Please select one of your products to set its price.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String newPriceText = priceFieldForStock.getText().trim();
+                double newPrice;
+                try {
+                    newPrice = Double.parseDouble(newPriceText);
+                    if (newPrice < 0) throw new NumberFormatException("Price cannot be negative.");
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid non-negative price.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String selectedItemStr = (String) marketStockProductCombo.getSelectedItem();
+                Product productToUpdate = findProductInMarketInventoryByName(selectedItemStr.split(" \\|")[0].trim());
+
+                if (productToUpdate != null) {
+                    try {
+                        currentMarket.setProductPrice(productToUpdate, newPrice);
+                        JOptionPane.showMessageDialog(this, "Price updated successfully for " + productToUpdate.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
+                        updateMarketStockPriceInfo();
+                    } catch (IllegalArgumentException ex) {
+                        JOptionPane.showMessageDialog(this, ex.getMessage(), "Price Update Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Selected product not found in your inventory.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            pack();
+            setMinimumSize(new Dimension(500, 350));
+            setLocationRelativeTo(owner);
+            setVisible(true);
+        }
+
+        // ... (rest of MarketDetailPage methods like findProductInMarketInventoryByName,
+        //      populateBuyProductCombo, updateSellerStockInfo, populateMarketStockCombo,
+        //      updateMarketStockPriceInfo remain the same as in the previous "Corrected and Refactored" version) ...
+        // Make sure these methods are correctly placed within the MarketDetailPage class body.
+        // The code for these methods was provided in the previous response and should be correct.
+        // I will re-paste them here for completeness of MarketDetailPage:
+
+        private Product findProductInMarketInventoryByName(String name) {
+            for(Product p : currentMarket.getInventory().keySet()){
+                if(p.getName().equals(name)) return p;
             }
-        });
+            return null;
+        }
 
-        // Set price button logic
-        setPriceButton.addActionListener(e -> {
-            // Show a dialog with a list of products in storage (name, amount, cost)
-            new MarketInventoryDialog(market);
-        });
-
-        pack();
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
-
-    // Helper to get product cost from factory (implement as needed)
-    private double getProductCost(String productName, Factory factory) {
-        // TODO: Implement this to return the cost of the product from the factory
-        return 0.0;
-    }
-}
-
-// Dialog for shopping (buying products)
-class ShopDialog extends JDialog {
-    public ShopDialog(Market market, java.util.List<Market> allMarkets, JLabel balanceLabel) {
-        super((JFrame) null, "Shop - " + market.getName(), true);
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setResizable(false);
-        setLocationRelativeTo(null);
-        setSize(400, 250);
-        setModal(true);
-
-        add(Box.createVerticalStrut(20));
-        JComboBox<String> productCombo = new JComboBox<>();
-        java.util.List<Object[]> availableProducts = new ArrayList<>(); // [Product, price, amount, seller]
-        for (Market m : allMarkets) {
-            if (m == market) continue;
-            for (Map.Entry<Product, Integer> entry : m.getInventory().entrySet()) {
-                if (entry.getValue() > 0) {
-                    String entryStr = entry.getKey().getName() + " | Price: " + m.getProductPrice(entry.getKey()) + " | Amount: " + entry.getValue() + " | Seller: " + m.getName();
-                    productCombo.addItem(entryStr);
-                    availableProducts.add(new Object[]{entry.getKey(), m.getProductPrice(entry.getKey()), entry.getValue(), m});
+        private void updateMarketStockPriceInfo() {
+            int selectedIdx = marketStockProductCombo.getSelectedIndex();
+            if (selectedIdx != -1 && marketStockProductCombo.getItemCount() > 0 &&
+                    marketStockProductCombo.getSelectedItem() != null && // Add null check forgetSelectedItem()
+                    !marketStockProductCombo.getSelectedItem().toString().startsWith("No products")) {
+                String selectedItemStr = (String) marketStockProductCombo.getSelectedItem();
+                Product selectedProd = findProductInMarketInventoryByName(selectedItemStr.split(" \\|")[0].trim());
+                if(selectedProd != null) {
+                    double currentPrice = currentMarket.getProductPrice(selectedProd);
+                    currentPriceLabelForOwnStock.setText(String.format("%.2f", currentPrice));
+                    priceFieldForStock.setText(String.format("%.2f", currentPrice));
+                    priceFieldForStock.setEnabled(true);
+                } else {
+                    currentPriceLabelForOwnStock.setText("N/A");
+                    priceFieldForStock.setText("");
+                    priceFieldForStock.setEnabled(false);
                 }
+            } else {
+                currentPriceLabelForOwnStock.setText("N/A");
+                priceFieldForStock.setText("");
+                priceFieldForStock.setEnabled(false);
             }
         }
-        productCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
-        add(productCombo);
-        add(Box.createVerticalStrut(8));
-        JLabel amountLabel = new JLabel("Amount:");
-        add(amountLabel);
-        JTextField amountField = new JTextField();
-        amountField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
-        add(amountField);
-        add(Box.createVerticalStrut(8));
-        JButton buyButton = new JButton("Buy");
-        buyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        buyButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-        add(buyButton);
-        add(Box.createVerticalStrut(20));
-        JButton closeButton = new JButton("Close");
-        closeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        closeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-        add(closeButton);
 
-        buyButton.addActionListener(e -> {
+        private void populateBuyProductCombo() {
+            availableProductsForSale.clear();
+            Object currentSelection = productCombo.getSelectedItem();
+            productCombo.removeAllItems();
+
+            for (Market otherMarket : marketController.getMarkets()) {
+                if (otherMarket.equals(currentMarket)) continue;
+                for (Map.Entry<Product, Integer> entry : otherMarket.getInventory().entrySet()) {
+                    Product p = entry.getKey();
+                    int stock = entry.getValue();
+                    if (stock > 0) {
+                        double price = otherMarket.getProductPrice(p);
+                        availableProductsForSale.add(new Object[]{p, price, stock, otherMarket});
+                        productCombo.addItem(String.format("%s | %s (Price: %.2f, Stock: %d)", otherMarket.getName(), p.getName(), price, stock));
+                    }
+                }
+            }
+            for (Factory factory : allFactories) {
+                for (ProductDesign design : factory.getDesigns()) {
+                    Product factoryProduct = design.getProduct();
+                    int factoryStock = factory.getProducts().getOrDefault(factoryProduct.getName(), 0);
+                    if (factoryStock > 0) {
+                        double factorySellPrice = design.getProductionCost() * 1.2;
+                        if (factorySellPrice < 0 && design.getProductionCost() >= 0) factorySellPrice = design.getProductionCost();
+                        else if (factorySellPrice < 0) factorySellPrice = 0;
+
+
+                        availableProductsForSale.add(new Object[]{factoryProduct, factorySellPrice, factoryStock, factory});
+                        productCombo.addItem(String.format("%s (Factory) | %s (Price: %.2f, Stock: %d)", factory.getName(), factoryProduct.getName(), factorySellPrice, factoryStock));
+                    }
+                }
+            }
+            if (currentSelection != null) {
+                for (int i = 0; i < productCombo.getItemCount(); i++) {
+                    if (productCombo.getItemAt(i).equals(currentSelection.toString())) {
+                        productCombo.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
+            if (productCombo.getSelectedIndex() == -1 && productCombo.getItemCount() > 0) {
+                productCombo.setSelectedIndex(0);
+            }
+            // updateSellerStockInfo(); // This was called here, but it's better called by the action listener or after setting index
+        }
+
+        private void updateSellerStockInfo() {
             int selectedIdx = productCombo.getSelectedIndex();
-            if (selectedIdx == -1) {
-                JOptionPane.showMessageDialog(this, "Please select a product to buy.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+            if (selectedIdx >= 0 && selectedIdx < availableProductsForSale.size()) {
+                stockValueLabel.setText(String.valueOf(availableProductsForSale.get(selectedIdx)[2]));
+            } else {
+                stockValueLabel.setText("N/A");
             }
-            String amountText = amountField.getText().trim();
-            int amount;
-            try {
-                amount = Integer.parseInt(amountText);
-                if (amount <= 0) throw new NumberFormatException();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid positive integer for amount.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            Object[] prodInfo = availableProducts.get(selectedIdx);
-            Product product = (Product) prodInfo[0];
-            double price = (double) prodInfo[1];
-            int available = (int) prodInfo[2];
-            Market seller = (Market) prodInfo[3];
-            if (amount > available) {
-                JOptionPane.showMessageDialog(this, "Seller does not have enough stock.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            double totalCost = amount * price;
-            if (market.getBalance() < totalCost) {
-                JOptionPane.showMessageDialog(this, "You don't have enough funds to buy this product.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            try {
-                market.buyProduct(product, amount, price, (Customer) seller);
-                balanceLabel.setText("Balance:  " + market.getBalance());
-                JOptionPane.showMessageDialog(this, "Purchase successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        closeButton.addActionListener(e -> dispose());
-        setVisible(true);
-    }
-}
-
-// Dialog for viewing and updating inventory for Market
-class MarketInventoryDialog extends JDialog {
-    public MarketInventoryDialog(Market market) {
-        super((JFrame) null, "Inventory - " + market.getName(), true);
-        setLayout(new BorderLayout());
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        DefaultListModel<String> inventoryModel = new DefaultListModel<>();
-        java.util.List<Product> products = new ArrayList<>(market.getInventory().keySet());
-        for (Product p : products) {
-            int amt = market.getInventory().get(p);
-            double price = market.getProductPrice(p);
-            inventoryModel.addElement(p.getName() + " | Amount: " + amt + " | Price: " + price);
         }
-        JList<String> inventoryList = new JList<>(inventoryModel);
-        JScrollPane scrollPane = new JScrollPane(inventoryList);
-        panel.add(scrollPane);
-        JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(e -> dispose());
-        panel.add(closeButton);
-        add(panel, BorderLayout.CENTER);
-        setSize(400, 300);
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
-}
 
-// Dialog for adding a new market
-class AddMarketDialog extends JDialog {
-    public AddMarketDialog(MarketGUI parent) {
-        super((JFrame) null, "Add New Market", true);
-        setLayout(new BorderLayout());
-        JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        formPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        JLabel nameLabel = new JLabel("Market Name:");
-        JTextField nameField = new JTextField();
-        JLabel balanceLabel = new JLabel("Initial Balance:");
-        JTextField balanceField = new JTextField();
-        formPanel.add(nameLabel); formPanel.add(nameField);
-        formPanel.add(balanceLabel); formPanel.add(balanceField);
-        add(formPanel, BorderLayout.CENTER);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton okButton = new JButton("OK");
-        JButton cancelButton = new JButton("Cancel");
-        buttonPanel.add(okButton);
-        buttonPanel.add(cancelButton);
-        add(buttonPanel, BorderLayout.SOUTH);
-        okButton.addActionListener(e -> {
-            String name = nameField.getText().trim();
-            String balanceText = balanceField.getText().trim();
-            double balance;
-            if (name.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+        private void populateMarketStockCombo() {
+            marketStockProductCombo.removeAllItems();
+            Map<Product, Integer> stock = currentMarket.getInventory();
+            if (stock.isEmpty()) {
+                marketStockProductCombo.addItem("No products in your stock");
+                marketStockProductCombo.setEnabled(false);
+                // priceFieldForStock.setEnabled(false); // This is handled by updateMarketStockPriceInfo
+                // currentPriceLabelForOwnStock.setText("N/A");
+            } else {
+                marketStockProductCombo.setEnabled(true);
+                // priceFieldForStock.setEnabled(true); // This is handled by updateMarketStockPriceInfo
+                for (Map.Entry<Product, Integer> entry : stock.entrySet()) {
+                    marketStockProductCombo.addItem(entry.getKey().getName() + " | Amount: " + entry.getValue() + " | Cost: " + String.format("%.2f",entry.getKey().getProductionCost()));
+                }
+                if(marketStockProductCombo.getItemCount() > 0) {
+                    marketStockProductCombo.setSelectedIndex(0);
+                }
             }
-            try {
-                balance = Double.parseDouble(balanceText);
-                if (balance < 0) throw new NumberFormatException();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid non-negative number for balance.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            parent.markets.add(new Market(name, balance));
-            parent.refreshMarketList();
-            dispose();
-        });
-        cancelButton.addActionListener(e -> dispose());
-        setSize(350, 180);
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
-}
+            updateMarketStockPriceInfo();
+        }
+    } // End of MarketDetailPage
+        }
 
-// Dialog for editing a market
-class EditMarketDialog extends JDialog {
-    public EditMarketDialog(MarketGUI parent, Market market) {
-        super((JFrame) null, "Edit Market", true);
-        setLayout(new BorderLayout());
-        JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        formPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        JLabel nameLabel = new JLabel("Market Name:");
-        JTextField nameField = new JTextField(market.getName());
-        JLabel balanceLabel = new JLabel("Balance:");
-        JTextField balanceField = new JTextField(String.valueOf(market.getBalance()));
-        formPanel.add(nameLabel); formPanel.add(nameField);
-        formPanel.add(balanceLabel); formPanel.add(balanceField);
-        add(formPanel, BorderLayout.CENTER);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton okButton = new JButton("OK");
-        JButton cancelButton = new JButton("Cancel");
-        buttonPanel.add(okButton);
-        buttonPanel.add(cancelButton);
-        add(buttonPanel, BorderLayout.SOUTH);
-        okButton.addActionListener(e -> {
-            String name = nameField.getText().trim();
-            String balanceText = balanceField.getText().trim();
-            double balance;
-            if (name.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            try {
-                balance = Double.parseDouble(balanceText);
-                if (balance < 0) throw new NumberFormatException();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid non-negative number for balance.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            market.setName(name);
-            market.setBalance(balance);
-            parent.refreshMarketList();
-            dispose();
-        });
-        cancelButton.addActionListener(e -> dispose());
-        setSize(350, 180);
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
-} 
