@@ -206,21 +206,28 @@ public class MarketGUI extends MyWindow {
         }
     }
 
+// ================================================
+// FILE: src/MarketGUI.java (MarketDetailPage visually updated)
+// ================================================
+// ... (Keep MarketGUI main class, AddMarketDialog, EditMarketDialog as they were from the "Corrected and Refactored" version) ...
+
+    // --- Inner Class MarketDetailPage (Visually Updated to match PDF Page 9) ---
     class MarketDetailPage extends JDialog {
         private Market currentMarket;
         private MarketController marketController;
         private java.util.List<Factory> allFactories;
-        private JLabel balanceValueLabel;
-        private JComboBox<String> productCombo;
-        private JLabel stockValueLabel;
-        private JTextField amountField;
-        private List<Object[]> availableProductsForSale;
-        private JComboBox<String> marketStockProductCombo;
-        private JTextField priceFieldForStock;
-        private JLabel currentPriceLabelForOwnStock;
 
-// In MarketGUI.java
-// Inside class MarketDetailPage:
+        private JLabel balanceValueLabel;
+        // For Buying Products
+        private JComboBox<String> productToBuyCombo;
+        private JLabel sellerStockQtyLabel;
+        private JTextField amountToBuyField;
+        // For Setting Prices of Own Stock
+        private JComboBox<String> ownStockProductCombo; // To select product from own stock
+        private JTextField priceForOwnStockField;
+        // Helper list for product buying
+        private List<Object[]> availableProductsForSale; // [Product, price, current stock, sellerEntity (Market/Factory)]
+
 
         public MarketDetailPage(Frame owner, Market market, MarketController marketCtrl, java.util.List<Factory> factories) {
             super(owner, "Market: " + market.getName(), true);
@@ -229,104 +236,133 @@ public class MarketGUI extends MyWindow {
             this.allFactories = factories;
             this.availableProductsForSale = new ArrayList<>();
 
-            setLayout(new BorderLayout());
+            setLayout(new BorderLayout(10,10));
+            setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
+            // --- Top Panel: Title and Back Button ---
             JPanel topPanel = new JPanel(new BorderLayout());
-            topPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+            topPanel.setBorder(new EmptyBorder(5, 10, 5, 10)); // Added padding
             JLabel titleLabel = new JLabel("Market: " + currentMarket.getName());
-            titleLabel.setFont(new Font("Arial", Font.BOLD, 13));
+            titleLabel.setFont(new Font("Arial", Font.BOLD, 14)); // Slightly larger font
             topPanel.add(titleLabel, BorderLayout.WEST);
             JButton backButton = new JButton("Back");
             backButton.addActionListener(e -> dispose());
             topPanel.add(backButton, BorderLayout.EAST);
             add(topPanel, BorderLayout.NORTH);
 
-            JTabbedPane tabbedPane = new JTabbedPane();
+            // --- Main Content Panel ---
+            JPanel mainContentPanel = new JPanel();
+            mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.Y_AXIS));
+            mainContentPanel.setBorder(new EmptyBorder(15, 20, 15, 20)); // Padding
 
-            // --- Initialize Components for Buy Products Tab FIRST ---
+            Dimension labelDim = new Dimension(120, 25); // For consistent label width
+            Dimension fieldDim = new Dimension(180, 25); // For consistent field width
+
+            // Balance Display
+            JPanel balancePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            JLabel balanceLabel = new JLabel("Balance:");
+            balanceLabel.setPreferredSize(labelDim);
+            balancePanel.add(balanceLabel);
             balanceValueLabel = new JLabel(String.format("%.2f", currentMarket.getBalance()));
-            productCombo = new JComboBox<>();
-            productCombo.setPreferredSize(new Dimension(350, 25));
-            stockValueLabel = new JLabel("0"); // Initialize here
-            amountField = new JTextField(10);
-            JButton buyButton = new JButton("Buy Selected Product");
-            buyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            balanceValueLabel.setPreferredSize(fieldDim);
+            balancePanel.add(balanceValueLabel);
+            mainContentPanel.add(balancePanel);
 
-            // --- Build Buy Products Tab UI ---
-            JPanel buyPanel = new JPanel();
-            buyPanel.setLayout(new BoxLayout(buyPanel, BoxLayout.Y_AXIS));
-            buyPanel.setBorder(new EmptyBorder(10, 15, 10, 15));
-            JPanel balancePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            balancePanel.add(new JLabel("Balance:"));
-            balancePanel.add(balanceValueLabel); // Use initialized component
-            buyPanel.add(balancePanel);
-            buyPanel.add(Box.createVerticalStrut(10));
-            JPanel productSelectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            productSelectPanel.add(new JLabel("Select Product to Buy:"));
-            productSelectPanel.add(productCombo); // Use initialized component
-            buyPanel.add(productSelectPanel);
-            JPanel stockInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            stockInfoPanel.add(new JLabel("Seller's Stock:"));
-            stockInfoPanel.add(stockValueLabel); // Use initialized component
-            buyPanel.add(stockInfoPanel);
-            JPanel amountToBuyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            amountToBuyPanel.add(new JLabel("Amount:"));
-            amountToBuyPanel.add(amountField); // Use initialized component
-            buyPanel.add(amountToBuyPanel);
-            buyPanel.add(Box.createVerticalStrut(10));
-            buyPanel.add(buyButton); // Use initialized component
-            tabbedPane.addTab("Buy Products", buyPanel);
+            // --- Buying Section ---
+            // Select Product to Buy
+            JPanel selectBuyProductPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            JLabel selectBuyLabel = new JLabel("Select Product:");
+            selectBuyLabel.setPreferredSize(labelDim);
+            selectBuyProductPanel.add(selectBuyLabel);
+            productToBuyCombo = new JComboBox<>();
+            productToBuyCombo.setPreferredSize(fieldDim);
+            selectBuyProductPanel.add(productToBuyCombo);
+            mainContentPanel.add(selectBuyProductPanel);
 
-            // --- Initialize Components for Set Prices Tab FIRST ---
-            marketStockProductCombo = new JComboBox<>();
-            marketStockProductCombo.setPreferredSize(new Dimension(300, 25));
-            currentPriceLabelForOwnStock = new JLabel("N/A");
-            priceFieldForStock = new JTextField(10);
-            JButton updatePriceButton = new JButton("Update Price for Selected Product");
-            updatePriceButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            // Seller's Stock Quantity
+            JPanel sellerStockPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            JLabel sellerStockLabelText = new JLabel("Stock Quantity:");
+            sellerStockLabelText.setPreferredSize(labelDim);
+            sellerStockPanel.add(sellerStockLabelText);
+            sellerStockQtyLabel = new JLabel("0");
+            sellerStockQtyLabel.setPreferredSize(fieldDim);
+            sellerStockPanel.add(sellerStockQtyLabel);
+            mainContentPanel.add(sellerStockPanel);
 
-            // --- Build Set Prices Tab UI ---
-            JPanel setPricePanel = new JPanel();
-            setPricePanel.setLayout(new BoxLayout(setPricePanel, BoxLayout.Y_AXIS));
-            setPricePanel.setBorder(new EmptyBorder(10, 15, 10, 15));
-            setPricePanel.add(new JLabel("Manage Prices for Your Stock:"));
-            setPricePanel.add(Box.createVerticalStrut(5));
-            JPanel marketStockSelectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            marketStockSelectPanel.add(new JLabel("Your Product:"));
-            marketStockSelectPanel.add(marketStockProductCombo); // Use initialized component
-            setPricePanel.add(marketStockSelectPanel);
-            JPanel currentPriceInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            currentPriceInfoPanel.add(new JLabel("Current Price:"));
-            currentPriceInfoPanel.add(currentPriceLabelForOwnStock); // Use initialized component
-            setPricePanel.add(currentPriceInfoPanel);
-            JPanel newPricePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            newPricePanel.add(new JLabel("New Price:"));
-            newPricePanel.add(priceFieldForStock); // Use initialized component
-            setPricePanel.add(newPricePanel);
-            setPricePanel.add(Box.createVerticalStrut(10));
-            setPricePanel.add(updatePriceButton); // Use initialized component
-            tabbedPane.addTab("Set Prices", setPricePanel);
+            // Amount to Buy
+            JPanel amountBuyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            JLabel amountBuyLabel = new JLabel("Amount:");
+            amountBuyLabel.setPreferredSize(labelDim);
+            amountBuyPanel.add(amountBuyLabel);
+            amountToBuyField = new JTextField();
+            amountToBuyField.setPreferredSize(fieldDim);
+            amountBuyPanel.add(amountToBuyField);
+            mainContentPanel.add(amountBuyPanel);
 
-            add(tabbedPane, BorderLayout.CENTER);
+            // Buy Button
+            JPanel buyButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5)); // Centered
+            JButton buyButton = new JButton("Buy");
+            buyButton.setPreferredSize(new Dimension(100,30));
+            buyButtonPanel.add(buyButton);
+            mainContentPanel.add(buyButtonPanel);
 
-            // --- NOW Populate and Add Listeners ---
-            populateBuyProductCombo(); // Safe to call now
-            productCombo.addActionListener(e -> updateSellerStockInfo());
-            if (productCombo.getItemCount() > 0) productCombo.setSelectedIndex(0);
-            else updateSellerStockInfo(); // Ensure consistent state even if empty
+            mainContentPanel.add(Box.createRigidArea(new Dimension(0, 15))); // Spacer
 
-            populateMarketStockCombo(); // Safe to call now
-            marketStockProductCombo.addActionListener(e -> updateMarketStockPriceInfo());
-            updateMarketStockPriceInfo(); // Initial call after populating
+            // --- Setting Price for Own Stock Section ---
+            // Own Stock Product Selection (for setting price) - PDF doesn't show this selection, assumes one product or implicit selection
+            // To match PDF closely for "Price (for stock)" we'd need a way to select which owned product.
+            // Let's add a JComboBox for owned products if there are multiple.
+            // If the intent of "Price (for stock)" is to set a price for the *last bought* or *a specific product*,
+            // the UI needs to reflect that. The PDF is ambiguous here if market owns multiple items.
+            // For now, assuming we allow setting price for any item in own stock.
+            JPanel selectOwnStockPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            JLabel selectOwnStockLabel = new JLabel("Your Product:"); // Label for clarity
+            selectOwnStockLabel.setPreferredSize(labelDim);
+            selectOwnStockPanel.add(selectOwnStockLabel);
+            ownStockProductCombo = new JComboBox<>();
+            ownStockProductCombo.setPreferredSize(fieldDim);
+            selectOwnStockPanel.add(ownStockProductCombo);
+            mainContentPanel.add(selectOwnStockPanel);
+
+
+            // Price (for stock)
+            JPanel priceSetPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            JLabel priceSetLabel = new JLabel("Price (for stock):");
+            priceSetLabel.setPreferredSize(labelDim);
+            priceSetPanel.add(priceSetLabel);
+            priceForOwnStockField = new JTextField();
+            priceForOwnStockField.setPreferredSize(fieldDim);
+            priceSetPanel.add(priceForOwnStockField);
+            mainContentPanel.add(priceSetPanel);
+
+            // Update Price Button
+            JPanel updatePriceButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5)); // Centered
+            JButton updatePriceButton = new JButton("Update Price");
+            updatePriceButton.setPreferredSize(new Dimension(120,30));
+            updatePriceButtonPanel.add(updatePriceButton);
+            mainContentPanel.add(updatePriceButtonPanel);
+
+            add(mainContentPanel, BorderLayout.CENTER);
+
+            // --- Initialize and Populate Combos, Add Listeners ---
+            populateProductToBuyCombo();
+            productToBuyCombo.addActionListener(e -> updateSellerStockQtyLabel());
+            if (productToBuyCombo.getItemCount() > 0) productToBuyCombo.setSelectedIndex(0);
+            else updateSellerStockQtyLabel(); // Handle empty case
+
+            populateOwnStockProductCombo();
+            ownStockProductCombo.addActionListener(e -> updatePriceForOwnStockField());
+            if (ownStockProductCombo.getItemCount() > 0) ownStockProductCombo.setSelectedIndex(0);
+            else updatePriceForOwnStockField(); // Handle empty
+
 
             buyButton.addActionListener(e -> {
-                // ... (buyButton listener code remains the same) ...
-                int selectedIdx = productCombo.getSelectedIndex();
+                int selectedIdx = productToBuyCombo.getSelectedIndex();
                 if (selectedIdx < 0 || selectedIdx >= availableProductsForSale.size()) {
                     JOptionPane.showMessageDialog(this, "Please select a product to buy.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                String amountText = amountField.getText().trim();
+                String amountText = amountToBuyField.getText().trim();
                 int amount;
                 try {
                     amount = Integer.parseInt(amountText);
@@ -346,31 +382,23 @@ public class MarketGUI extends MyWindow {
                     balanceValueLabel.setText(String.format("%.2f", currentMarket.getBalance()));
                     JOptionPane.showMessageDialog(this, "Purchase successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                    // Refresh UI elements after purchase
-                    int previousBuySelection = productCombo.getSelectedIndex();
-                    populateBuyProductCombo();
-                    if(productCombo.getItemCount() > 0) {
-                        if(previousBuySelection < productCombo.getItemCount() && previousBuySelection != -1) {
-                            productCombo.setSelectedIndex(previousBuySelection);
-                        } else {
-                            productCombo.setSelectedIndex(0);
-                        }
+                    int previousBuySelection = productToBuyCombo.getSelectedIndex();
+                    populateProductToBuyCombo(); // Refresh list of products to buy
+                    if(productToBuyCombo.getItemCount() > 0) {
+                        if(previousBuySelection < productToBuyCombo.getItemCount() && previousBuySelection != -1) productToBuyCombo.setSelectedIndex(previousBuySelection);
+                        else productToBuyCombo.setSelectedIndex(0);
                     }
-                    updateSellerStockInfo(); // Update based on new selection or empty list
+                    updateSellerStockQtyLabel();
+                    amountToBuyField.setText("");
 
-                    amountField.setText("");
-
-                    int previousStockSelection = marketStockProductCombo.getSelectedIndex();
-                    populateMarketStockCombo(); // Also refresh own stock combo
-                    if(marketStockProductCombo.getItemCount() > 0) {
-                        if(previousStockSelection < marketStockProductCombo.getItemCount() && previousStockSelection != -1) {
-                            marketStockProductCombo.setSelectedIndex(previousStockSelection);
-                        } else {
-                            marketStockProductCombo.setSelectedIndex(0);
-                        }
+                    // Buying might add new product types to own stock, so refresh that combo too
+                    int previousOwnStockSelection = ownStockProductCombo.getSelectedIndex();
+                    populateOwnStockProductCombo();
+                    if(ownStockProductCombo.getItemCount() > 0){
+                        if(previousOwnStockSelection < ownStockProductCombo.getItemCount() && previousOwnStockSelection != -1) ownStockProductCombo.setSelectedIndex(previousOwnStockSelection);
+                        else ownStockProductCombo.setSelectedIndex(0);
                     }
-                    updateMarketStockPriceInfo(); // Update based on new selection or empty list
-
+                    updatePriceForOwnStockField();
 
                 } catch (IllegalStateException | IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(this, "Error during purchase: " + ex.getMessage(), "Purchase Error", JOptionPane.ERROR_MESSAGE);
@@ -378,13 +406,12 @@ public class MarketGUI extends MyWindow {
             });
 
             updatePriceButton.addActionListener(e -> {
-                // ... (updatePriceButton listener code remains the same) ...
-                int selectedIdx = marketStockProductCombo.getSelectedIndex();
-                if (selectedIdx == -1 || marketStockProductCombo.getSelectedItem().toString().startsWith("No products")) {
+                int selectedOwnStockIdx = ownStockProductCombo.getSelectedIndex();
+                if (selectedOwnStockIdx == -1 || ownStockProductCombo.getSelectedItem().toString().startsWith("No items")) {
                     JOptionPane.showMessageDialog(this, "Please select one of your products to set its price.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                String newPriceText = priceFieldForStock.getText().trim();
+                String newPriceText = priceForOwnStockField.getText().trim();
                 double newPrice;
                 try {
                     newPrice = Double.parseDouble(newPriceText);
@@ -394,34 +421,30 @@ public class MarketGUI extends MyWindow {
                     return;
                 }
 
-                String selectedItemStr = (String) marketStockProductCombo.getSelectedItem();
-                Product productToUpdate = findProductInMarketInventoryByName(selectedItemStr.split(" \\|")[0].trim());
+                // Get the actual Product object from the combo box selection
+                String selectedItemName = ((String) ownStockProductCombo.getSelectedItem()).split(" \\(")[0].trim(); // Get name part
+                Product productToUpdate = findProductInMarketInventoryByName(selectedItemName);
+
 
                 if (productToUpdate != null) {
                     try {
                         currentMarket.setProductPrice(productToUpdate, newPrice);
                         JOptionPane.showMessageDialog(this, "Price updated successfully for " + productToUpdate.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                        updateMarketStockPriceInfo();
+                        // No need to repopulate, just ensure field reflects the new price if user changes selection
+                        updatePriceForOwnStockField();
                     } catch (IllegalArgumentException ex) {
                         JOptionPane.showMessageDialog(this, ex.getMessage(), "Price Update Error", JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(this, "Selected product not found in your inventory.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Selected product '" + selectedItemName + "' not found in your inventory.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
             pack();
-            setMinimumSize(new Dimension(500, 350));
+            setMinimumSize(new Dimension(480, 420)); // Adjusted minimum size
             setLocationRelativeTo(owner);
             setVisible(true);
         }
-
-        // ... (rest of MarketDetailPage methods like findProductInMarketInventoryByName,
-        //      populateBuyProductCombo, updateSellerStockInfo, populateMarketStockCombo,
-        //      updateMarketStockPriceInfo remain the same as in the previous "Corrected and Refactored" version) ...
-        // Make sure these methods are correctly placed within the MarketDetailPage class body.
-        // The code for these methods was provided in the previous response and should be correct.
-        // I will re-paste them here for completeness of MarketDetailPage:
 
         private Product findProductInMarketInventoryByName(String name) {
             for(Product p : currentMarket.getInventory().keySet()){
@@ -430,34 +453,10 @@ public class MarketGUI extends MyWindow {
             return null;
         }
 
-        private void updateMarketStockPriceInfo() {
-            int selectedIdx = marketStockProductCombo.getSelectedIndex();
-            if (selectedIdx != -1 && marketStockProductCombo.getItemCount() > 0 &&
-                    marketStockProductCombo.getSelectedItem() != null && // Add null check forgetSelectedItem()
-                    !marketStockProductCombo.getSelectedItem().toString().startsWith("No products")) {
-                String selectedItemStr = (String) marketStockProductCombo.getSelectedItem();
-                Product selectedProd = findProductInMarketInventoryByName(selectedItemStr.split(" \\|")[0].trim());
-                if(selectedProd != null) {
-                    double currentPrice = currentMarket.getProductPrice(selectedProd);
-                    currentPriceLabelForOwnStock.setText(String.format("%.2f", currentPrice));
-                    priceFieldForStock.setText(String.format("%.2f", currentPrice));
-                    priceFieldForStock.setEnabled(true);
-                } else {
-                    currentPriceLabelForOwnStock.setText("N/A");
-                    priceFieldForStock.setText("");
-                    priceFieldForStock.setEnabled(false);
-                }
-            } else {
-                currentPriceLabelForOwnStock.setText("N/A");
-                priceFieldForStock.setText("");
-                priceFieldForStock.setEnabled(false);
-            }
-        }
-
-        private void populateBuyProductCombo() {
+        private void populateProductToBuyCombo() {
             availableProductsForSale.clear();
-            Object currentSelection = productCombo.getSelectedItem();
-            productCombo.removeAllItems();
+            Object currentSelection = productToBuyCombo.getSelectedItem();
+            productToBuyCombo.removeAllItems();
 
             for (Market otherMarket : marketController.getMarkets()) {
                 if (otherMarket.equals(currentMarket)) continue;
@@ -466,8 +465,9 @@ public class MarketGUI extends MyWindow {
                     int stock = entry.getValue();
                     if (stock > 0) {
                         double price = otherMarket.getProductPrice(p);
+                        // Format: "Factory_0 | Copper"
                         availableProductsForSale.add(new Object[]{p, price, stock, otherMarket});
-                        productCombo.addItem(String.format("%s | %s (Price: %.2f, Stock: %d)", otherMarket.getName(), p.getName(), price, stock));
+                        productToBuyCombo.addItem(String.format("%s | %s", otherMarket.getName(), p.getName()));
                     }
                 }
             }
@@ -477,58 +477,75 @@ public class MarketGUI extends MyWindow {
                     int factoryStock = factory.getProducts().getOrDefault(factoryProduct.getName(), 0);
                     if (factoryStock > 0) {
                         double factorySellPrice = design.getProductionCost() * 1.2;
-                        if (factorySellPrice < 0 && design.getProductionCost() >= 0) factorySellPrice = design.getProductionCost();
+                        if (factorySellPrice < 0 && design.getProductionCost() >=0) factorySellPrice = design.getProductionCost();
                         else if (factorySellPrice < 0) factorySellPrice = 0;
 
-
                         availableProductsForSale.add(new Object[]{factoryProduct, factorySellPrice, factoryStock, factory});
-                        productCombo.addItem(String.format("%s (Factory) | %s (Price: %.2f, Stock: %d)", factory.getName(), factoryProduct.getName(), factorySellPrice, factoryStock));
+                        productToBuyCombo.addItem(String.format("%s | %s", factory.getName(), factoryProduct.getName())); // Match PDF "Factory_0 | Copper"
                     }
                 }
             }
             if (currentSelection != null) {
-                for (int i = 0; i < productCombo.getItemCount(); i++) {
-                    if (productCombo.getItemAt(i).equals(currentSelection.toString())) {
-                        productCombo.setSelectedIndex(i);
+                for (int i = 0; i < productToBuyCombo.getItemCount(); i++) {
+                    if (productToBuyCombo.getItemAt(i).equals(currentSelection.toString())) {
+                        productToBuyCombo.setSelectedIndex(i);
                         break;
                     }
                 }
             }
-            if (productCombo.getSelectedIndex() == -1 && productCombo.getItemCount() > 0) {
-                productCombo.setSelectedIndex(0);
+            if (productToBuyCombo.getSelectedIndex() == -1 && productToBuyCombo.getItemCount() > 0) {
+                productToBuyCombo.setSelectedIndex(0);
             }
-            // updateSellerStockInfo(); // This was called here, but it's better called by the action listener or after setting index
         }
 
-        private void updateSellerStockInfo() {
-            int selectedIdx = productCombo.getSelectedIndex();
+        private void updateSellerStockQtyLabel() {
+            int selectedIdx = productToBuyCombo.getSelectedIndex();
             if (selectedIdx >= 0 && selectedIdx < availableProductsForSale.size()) {
-                stockValueLabel.setText(String.valueOf(availableProductsForSale.get(selectedIdx)[2]));
+                // availableProductsForSale stores: [Product, price, stock, sellerEntity]
+                sellerStockQtyLabel.setText(String.valueOf(availableProductsForSale.get(selectedIdx)[2])); // Index 2 is stock
             } else {
-                stockValueLabel.setText("N/A");
+                sellerStockQtyLabel.setText("0"); // Match PDF which shows 0 when selection implies no stock info
             }
         }
 
-        private void populateMarketStockCombo() {
-            marketStockProductCombo.removeAllItems();
+        private void populateOwnStockProductCombo() {
+            ownStockProductCombo.removeAllItems();
             Map<Product, Integer> stock = currentMarket.getInventory();
             if (stock.isEmpty()) {
-                marketStockProductCombo.addItem("No products in your stock");
-                marketStockProductCombo.setEnabled(false);
-                // priceFieldForStock.setEnabled(false); // This is handled by updateMarketStockPriceInfo
-                // currentPriceLabelForOwnStock.setText("N/A");
+                ownStockProductCombo.addItem("No items in your stock");
+                ownStockProductCombo.setEnabled(false);
             } else {
-                marketStockProductCombo.setEnabled(true);
-                // priceFieldForStock.setEnabled(true); // This is handled by updateMarketStockPriceInfo
+                ownStockProductCombo.setEnabled(true);
                 for (Map.Entry<Product, Integer> entry : stock.entrySet()) {
-                    marketStockProductCombo.addItem(entry.getKey().getName() + " | Amount: " + entry.getValue() + " | Cost: " + String.format("%.2f",entry.getKey().getProductionCost()));
+                    // Display: "ProductName (Qty: X, Cost: Y.YY, Price: Z.ZZ)"
+                    Product p = entry.getKey();
+                    ownStockProductCombo.addItem(String.format("%s (Qty: %d)", p.getName(), entry.getValue()));
                 }
-                if(marketStockProductCombo.getItemCount() > 0) {
-                    marketStockProductCombo.setSelectedIndex(0);
+                if(ownStockProductCombo.getItemCount() > 0) {
+                    ownStockProductCombo.setSelectedIndex(0);
                 }
             }
-            updateMarketStockPriceInfo();
+        }
+
+        private void updatePriceForOwnStockField() {
+            int selectedIdx = ownStockProductCombo.getSelectedIndex();
+            if (selectedIdx != -1 && ownStockProductCombo.getSelectedItem() != null &&
+                    !ownStockProductCombo.getSelectedItem().toString().startsWith("No items")) {
+                String selectedItemName = ((String) ownStockProductCombo.getSelectedItem()).split(" \\(")[0].trim();
+                Product selectedProd = findProductInMarketInventoryByName(selectedItemName);
+                if(selectedProd != null) {
+                    priceForOwnStockField.setText(String.format("%.2f", currentMarket.getProductPrice(selectedProd)));
+                    priceForOwnStockField.setEnabled(true);
+                } else {
+                    priceForOwnStockField.setText("");
+                    priceForOwnStockField.setEnabled(false);
+                }
+            } else {
+                priceForOwnStockField.setText("");
+                priceForOwnStockField.setEnabled(false);
+            }
         }
     } // End of MarketDetailPage
+// ... (Rest of MarketGUI: AddMarketDialog, EditMarketDialog remain the same)
         }
 
