@@ -158,7 +158,7 @@ public class Market implements Customer { // Customer interface implies getName,
      * @throws IllegalArgumentException if inputs are invalid.
      * @throws IllegalStateException if market doesn't have enough stock (should be pre-checked by customer).
      */
-    public void sellProductToCustomer(Product product, int amount, ConcreteCustomer buyer) {
+    public void sellProductToCustomer(Product product, int amount, Customers buyer) {
         if (product == null || buyer == null) { // buyer is technically not needed for *this* market's update
             throw new IllegalArgumentException("Product or buyer cannot be null for sellProductToCustomer.");
         }

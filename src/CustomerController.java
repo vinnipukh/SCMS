@@ -2,26 +2,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CustomerController {
-    private List<ConcreteCustomer> customers;
+    private List<Customers> customers;
 
     public CustomerController() {
         this.customers = new ArrayList<>();
         // Add some dummy customers for testing, as per project description screenshots
         // Customer_0, Customer_1, Customer_2, Customer_4, Customer_5
         // Names can be more descriptive if desired.
-        customers.add(new ConcreteCustomer("Customer_0", 400.0)); // Example from screenshot
-        customers.add(new ConcreteCustomer("Customer_1", 150.0));
-        customers.add(new ConcreteCustomer("Customer_2", 300.0));
+        customers.add(new Customers("Customer_0", 400.0)); // Example from screenshot
+        customers.add(new Customers("Customer_1", 150.0));
+        customers.add(new Customers("Customer_2", 300.0));
         // Skipping Customer_3 for now to match screenshot that shows _0,_1,_2,_4,_5
-        customers.add(new ConcreteCustomer("Customer_4", 500.0)); // Another example
-        customers.add(new ConcreteCustomer("Customer_5", 250.0));
+        customers.add(new Customers("Customer_4", 500.0)); // Another example
+        customers.add(new Customers("Customer_5", 250.0));
     }
 
-    public List<ConcreteCustomer> getCustomers() {
+    public List<Customers> getCustomers() {
         return new ArrayList<>(customers); // Return a copy to prevent external modification of the internal list
     }
 
-    public void addCustomer(ConcreteCustomer customer) {
+    public void addCustomer(Customers customer) {
         if (customer == null) {
             throw new IllegalArgumentException("Customer cannot be null.");
         }
@@ -29,7 +29,7 @@ public class CustomerController {
         this.customers.add(customer);
     }
 
-    public ConcreteCustomer getCustomer(int index) {
+    public Customers getCustomer(int index) {
         if (index < 0 || index >= customers.size()) {
             // Or return null, or throw a more specific custom exception
             throw new IndexOutOfBoundsException("Invalid customer index: " + index);
@@ -37,8 +37,8 @@ public class CustomerController {
         return customers.get(index);
     }
 
-    public ConcreteCustomer findCustomerByID(String customerID) {
-        for (ConcreteCustomer customer : customers) {
+    public Customers findCustomerByID(String customerID) {
+        for (Customers customer : customers) {
             if (customer.getCustomerID().equals(customerID)) {
                 return customer;
             }
@@ -54,7 +54,7 @@ public class CustomerController {
      * @throws IllegalArgumentException if customer not found or inputs are invalid (handled by ConcreteCustomer setters).
      */
     public void editCustomer(String customerID, String newName, double newBalance) {
-        ConcreteCustomer customerToEdit = findCustomerByID(customerID);
+        Customers customerToEdit = findCustomerByID(customerID);
         if (customerToEdit == null) {
             throw new IllegalArgumentException("Customer with ID " + customerID + " not found for editing.");
         }
@@ -69,7 +69,7 @@ public class CustomerController {
      * @return true if the customer was found and removed, false otherwise.
      */
     public boolean deleteCustomer(String customerID) {
-        ConcreteCustomer customerToRemove = findCustomerByID(customerID);
+        Customers customerToRemove = findCustomerByID(customerID);
         if (customerToRemove != null) {
             return this.customers.remove(customerToRemove);
         }

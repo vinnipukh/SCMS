@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 
 
 public class CustomerGUI extends JFrame {
@@ -69,7 +68,7 @@ public class CustomerGUI extends JFrame {
                 return;
             }
             // Ensure list matches controller's list order or find by ID
-            ConcreteCustomer selectedCustomer = customerController.getCustomers().get(selectedIndex);
+            Customers selectedCustomer = customerController.getCustomers().get(selectedIndex);
             new EditCustomerDialog(this, selectedCustomer);
             refreshCustomerList();
         });
@@ -80,7 +79,7 @@ public class CustomerGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please select a customer to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            ConcreteCustomer selectedCustomer = customerController.getCustomers().get(selectedIndex);
+            Customers selectedCustomer = customerController.getCustomers().get(selectedIndex);
             int confirm = JOptionPane.showConfirmDialog(this,
                     "Are you sure you want to delete " + selectedCustomer.getName() + "?",
                     "Confirm Deletion", JOptionPane.YES_NO_OPTION);
@@ -112,7 +111,7 @@ public class CustomerGUI extends JFrame {
     private void openCustomerDetail() {
         int selectedIndex = customerList.getSelectedIndex();
         if (selectedIndex != -1) {
-            ConcreteCustomer selectedCustomer = customerController.getCustomers().get(selectedIndex);
+            Customers selectedCustomer = customerController.getCustomers().get(selectedIndex);
             new CustomerDetailPage(this, selectedCustomer);
             refreshCustomerList();
         } else {
@@ -122,12 +121,12 @@ public class CustomerGUI extends JFrame {
 
     public void refreshCustomerList() {
         customerListModel.clear();
-        List<ConcreteCustomer> customers = customerController.getCustomers();
+        List<Customers> customers = customerController.getCustomers();
         Map<String, Integer> nameCount = new HashMap<>();
-        for (ConcreteCustomer c : customers) {
+        for (Customers c : customers) {
             nameCount.put(c.getName(), nameCount.getOrDefault(c.getName(), 0) + 1);
         }
-        for (ConcreteCustomer customer : customers) {
+        for (Customers customer : customers) {
             String displayName = customer.getName();
             if (nameCount.get(customer.getName()) > 1) {
                 displayName += " (ID: " + customer.getCustomerID() + ")";
@@ -185,7 +184,7 @@ public class CustomerGUI extends JFrame {
                         balanceField.requestFocus();
                         return;
                     }
-                    customerController.addCustomer(new ConcreteCustomer(name, balance));
+                    customerController.addCustomer(new Customers(name, balance));
                     // No need to call parentGUI.refreshCustomerList() explicitly,
                     // refreshCustomerList() is a method of the outer class CustomerGUI
                     CustomerGUI.this.refreshCustomerList();
@@ -203,9 +202,9 @@ public class CustomerGUI extends JFrame {
     class EditCustomerDialog extends JDialog {
         private JTextField nameField;
         private JTextField balanceField;
-        private ConcreteCustomer customerToEdit;
+        private Customers customerToEdit;
 
-        public EditCustomerDialog(Frame owner, ConcreteCustomer customer) {
+        public EditCustomerDialog(Frame owner, Customers customer) {
             super(owner, "Edit Customer", true);
             this.customerToEdit = customer;
             setLayout(new BorderLayout(10, 10));
@@ -259,10 +258,10 @@ public class CustomerGUI extends JFrame {
 
     // --- Inner Class for CustomerDetailPage ---
     class CustomerDetailPage extends JDialog {
-        private ConcreteCustomer customer;
+        private Customers customer;
         private JLabel balanceValueLabel;
 
-        public CustomerDetailPage(Frame owner, ConcreteCustomer customer) {
+        public CustomerDetailPage(Frame owner, Customers customer) {
             super(owner, "Customer: " + customer.getName(), true);
             this.customer = customer;
             setLayout(new BorderLayout(10, 10));
@@ -325,7 +324,7 @@ public class CustomerGUI extends JFrame {
 
     // --- Inner Class for CustomerShoppingPage (Matches PDF Page 11, top - REVISED LAYOUT) ---
     class CustomerShoppingPage extends JDialog {
-        private ConcreteCustomer customer;
+        private Customers customer;
         private JComboBox<String> productSelectionCombo;
         private JLabel stockAmountLabelValue; // Label to display the stock value
         private JTextField amountToBuyField;
@@ -340,7 +339,7 @@ public class CustomerGUI extends JFrame {
             }
         }
 
-        public CustomerShoppingPage(Dialog owner, ConcreteCustomer customer) {
+        public CustomerShoppingPage(Dialog owner, Customers customer) {
             super(owner, "Shopping - Customer: " + customer.getName(), true);
             if (owner instanceof CustomerDetailPage) {
                 this.parentCustomerDetailDialog = (CustomerDetailPage) owner;
@@ -516,9 +515,9 @@ public class CustomerGUI extends JFrame {
 // ... (End of CustomerGUI class) ...
     // --- Inner Class for CustomerInventoryPage ---
     class CustomerInventoryPage extends JDialog {
-        private ConcreteCustomer customer;
+        private Customers customer;
 
-        public CustomerInventoryPage(Dialog owner, ConcreteCustomer customer) {
+        public CustomerInventoryPage(Dialog owner, Customers customer) {
             super(owner, "Inventory - " + customer.getName(), true);
             this.customer = customer;
 
