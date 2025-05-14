@@ -4,4 +4,4 @@ This project was developed as part of my CS 102 course at Özyeğin University i
 
 The system simulates the full flow of a supply chain — from raw material producers to factories, markets, and finally, customers — with functionality for registering entities, managing inventory, designing and producing products, setting prices, and handling purchases.
 
-A major focus of the project was building a fully functional GUI using the Model-View-Controller (MVC) pattern. I faced significant challenges while implementing the GUI, but overcame them with persistence and occasional help from Gemini 2.5 Pro Preview.
+A major focus of the project was building a fully functional GUI using the Model-View-Controller (MVC) pattern. I faced significant challenges while implementing the GUI, but overcame them with  help from Gemini 2.5 Pro Preview.
